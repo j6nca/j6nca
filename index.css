@@ -8,6 +8,7 @@ body{
     font-family: sans-serif;
     color: #F8F4E3;
     background-color: #1e1e1e;
+    background-image: url("./assets/background.gif");
 }
 
 div, section, span, ul, li, a{
