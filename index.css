@@ -1,0 +1,39 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+body{
+    font-size: 100%;
+    font-family: sans-serif;
+    color: #F8F4E3;
+    background-color: #1e1e1e;
+}
+
+div, section, span, ul, li, a{
+    box-sizing: border-box;
+}
+
+nav{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 50px;
+    align-items: center;
+}
+
+#navbar li{
+    list-style: none;
+    display: inline-block;
+    /* margin: 20px; */
+}
+
+#navbar li a{
+    color: #8797B2;
+}
+
+section{
+    width: 100%;
+    float: left;
+    height: 100vh;
+}
