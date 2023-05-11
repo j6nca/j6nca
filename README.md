@@ -1,2 +1,4 @@
-# j6nca
-webpage
+- 👋 Y'Hello, I’m Jonathan
+- 📚 Working with Kubernetes, ArgoCD, Helm
+- 🌱 Learning about MongoDB, Game Dev (Unity, Godot)
+- 📫 Reach me at j6n.work@gmail.com
