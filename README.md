@@ -1,4 +1,5 @@
-- 👋 Y'Hello, I’m Jonathan
+- 👋 Y'Hello, I’m Jon(athan)
 - 📚 Working with Kubernetes, ArgoCD, Helm
 - 🌱 Learning about MongoDB, Game Dev (Unity, Godot)
+- 💆‍♂️ My hobbies are cooking, fishing, music and custom keyboards
 - 📫 Reach me at j6n.work@gmail.com
