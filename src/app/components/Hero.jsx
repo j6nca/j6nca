@@ -11,13 +11,13 @@ const Hero = () => {
           </h1>
           <br/>
           <p className='text-lg'>
-            I am a site reliability engineer with an interest in homelab and game development.
-            My hobbies involve keyboards, cooking, fishing, video games, and music.
+            I am a site reliability engineer based in Toronto, Canada. I have an interest in homelab and game development.
+            My hobbies involve custom keyboards, cooking, fishing, and video games.
             Reach me at:&nbsp;
             <a href = 'mailto:me@j6n.ca'>me@j6n.ca</a>. 
             You can <a href = './resume.pdf' target='_blank'>download my cv here</a> or, alternatively, view it via this request: <br/>
             <code className="font-mono font-bold">
-              curl https://blablahblah
+              curl https://j6n.ca/resume.json
             </code>
           </p>
         </div>
