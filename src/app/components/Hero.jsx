@@ -15,7 +15,7 @@ const Hero = () => {
             My hobbies involve keyboards, cooking, fishing, video games, and music.
             Reach me at:&nbsp;
             <a href = 'mailto:me@j6n.ca'>me@j6n.ca</a>. 
-            You can <a href = '/resume.pdf' target='_blank'>download my cv here</a> or, alternatively, view it via this request: <br/>
+            You can <a href = './resume.pdf' target='_blank'>download my cv here</a> or, alternatively, view it via this request: <br/>
             <code className="font-mono font-bold">
               curl https://blablahblah
             </code>
@@ -26,7 +26,7 @@ const Hero = () => {
           <div>
             {/* <div className='rounded-full bg-[#181818] w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] absolute transform top-1/2 left-1/2 '></div> */}
             <Image
-              src='/images/linkedin.jpg'
+              src='./images/linkedin.jpg'
               alt='linkedin display picture'
               width={300}
               height={300}
