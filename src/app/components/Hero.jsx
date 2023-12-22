@@ -6,11 +6,11 @@ const Hero = () => {
     <section>
       <div className='grid grid-cols-1 lg:grid-cols-12'>
         <div className='col-span-6'>
-          <h1 className='col-span-6 text-4xl'>
+          <h1 className='col-span-6 text-xl md:text-4xl'>
             <code className='font-extrabold'>Hello World</code>, I&apos;m Jon [j6n]
           </h1>
           <br/>
-          <p className='text-lg'>
+          <p className='text-sm md:text-2xl'>
             I am a site reliability engineer based in Toronto, Canada. I have an interest in homelab and game development.
             My hobbies involve custom keyboards, cooking, fishing, and video games.
             Reach me at:&nbsp;
@@ -22,7 +22,7 @@ const Hero = () => {
           </p>
         </div>
         <div className='col-span-1'></div>
-        <div className='col-span-5'>
+        <div className='col-span-5 py-20'>
           <div>
             {/* <div className='rounded-full bg-[#181818] w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] absolute transform top-1/2 left-1/2 '></div> */}
             <Image
