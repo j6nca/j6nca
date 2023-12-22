@@ -9,7 +9,7 @@ const ContactItem = ({
     <li className='inline-flex items-center gap-x-2.5 px-2'>
         <a href={`${link}`}>
             <Image
-            src={`./images/${name}.svg`}
+            src={`/images/${name}.svg`}
             alt={`${name} logo`}
             width={25}
             height={25}
