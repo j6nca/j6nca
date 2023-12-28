@@ -7,15 +7,15 @@ const Hero = () => {
       <div className='grid grid-cols-1 lg:grid-cols-12'>
         <div className='col-span-6'>
           <h1 className='col-span-6 text-xl md:text-4xl'>
-            <code className='font-extrabold'>Hello World</code>, I&apos;m Jon [j6n]
+            <code className='font-extrabold'>Hello World</code>, I&apos;m Jon <span className='highlight'>[j6n]</span>
           </h1>
           <br/>
           <p className='text-sm md:text-2xl'>
             I am a site reliability engineer based in Toronto, Canada. I have an interest in homelab and game development.
             My hobbies involve custom keyboards, cooking, fishing, and video games.
             Reach me at:&nbsp;
-            <a href = 'mailto:me@j6n.ca'>me@j6n.ca</a>. 
-            You can <a href = './resume.pdf' target='_blank'>download my cv here</a> or, alternatively, view it via this request: <br/>
+            <a className='highlight' href = 'mailto:me@j6n.ca'>me@j6n.ca</a>. 
+            You can download my cv <a className='highlight' href = './resume.pdf' target='_blank'>here</a> or, alternatively, view it via this request: <br/>
             <code className="font-mono font-bold">
               curl https://j6n.ca/resume.json
             </code>
