@@ -20,6 +20,6 @@ jobs:
           SHOW_LOC_CHART: false
           SHOW_OS: true
           SHOW_PROFILE_VIEWS: false
-          SHOW_PROJECTS: true
+          SHOW_PROJECTS: false
           SHOW_SHORT_INFO: false
           SHOW_UPDATED_DATE: false
