@@ -14,4 +14,12 @@ jobs:
         with:
           WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          COMMIT_MESSAGE: "Scheduled update of profile stats"
+          COMMIT_MESSAGE: "Updating profile stats"
+          SHOW_EDITORS: true
+          SHOW_LINES_OF_CODE: false
+          SHOW_LOC_CHART: false
+          SHOW_OS: true
+          SHOW_PROFILE_VIEWS: false
+          SHOW_PROJECTS: true
+          SHOW_SHORT_INFO: false
+          SHOW_UPDATED_DATE: false
