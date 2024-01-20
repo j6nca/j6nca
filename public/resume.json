@@ -11,79 +11,165 @@
         "countryCode": "CA",
         "region": "Ontario"
       },
-      "profiles": [{
-        "network": "Github",
-        "username": "j6nca",
-        "url": "https://github.com/j6nca"
-      }]
+      "profiles": [
+        {
+          "network": "Github",
+          "username": "j6nca",
+          "url": "https://github.com/j6nca"
+        }
+      ]
     },
-    "work": [{
-      "name": "Company",
-      "position": "President",
-      "url": "https://company.com",
-      "startDate": "2013-01-01",
-      "endDate": "2014-01-01",
-      "summary": "Description…",
-      "highlights": [
-        "Started the company"
-      ]
-    }],
-    "education": [{
-      "institution": "University of Waterloo",
-      "url": "https://uwaterloo.ca/",
-      "area": "Systems Design Engineering",
-      "studyType": "Bachelor of Applied Sciences",
-      "startDate": "2016-09-01",
-      "endDate": "2021-06-01",
-    //   "score": "4.0",
-    //   "courses": [
-    //     "DB1101 - Basic SQL"
-    //   ]
-    }],
-    // "awards": [{
-    //   "title": "Award",
-    //   "date": "2014-11-01",
-    //   "awarder": "Company",
-    //   "summary": "There is no spoon."
-    // }],
-    // "certificates": [{
-    //   "name": "Certificate",
-    //   "date": "2021-11-07",
-    //   "issuer": "Company",
-    //   "url": "https://certificate.com"
-    // }],
-    "skills": [{
-      "name": "Web Development",
-      "level": "Master",
-      "keywords": [
-        "HTML",
-        "CSS",
-        "JavaScript"
-      ]
-    }],
-    "languages": [{
-      "language": "English",
-      "fluency": "Native speaker"
-    }],
-    "interests": [{
-      "name": "Wildlife",
-      "keywords": [
-        "Ferrets",
-        "Unicorns"
-      ]
-    }],
-    // "references": [{
-    //   "name": "Jane Doe",
-    //   "reference": "Reference…"
-    // }],
-    "projects": [{
-      "name": "Project",
-      "startDate": "2019-01-01",
-      "endDate": "2021-01-01",
-      "description": "Description...",
-      "highlights": [
-        "blah blah blah"
-      ],
-      "url": "https://github.com/j6nca"
-    }]
+    "work": [
+      {
+        "name": "Tempo Software",
+        "position": "SRE II",
+        "url": "https://www.tempo.io",
+        "startDate": "2022-01-05",
+        "endDate": "present",
+        "highlights": [
+          ""
+        ]
+      },
+      {
+        "name": "TimePlay (now Stream6ix)",
+        "position": "Junior DevOps",
+        "url": "https://www.timeplay.com",
+        "startDate": "2021-04-18",
+        "endDate": "2021-12-30",
+        "highlights": [
+          ""
+        ]
+      },
+      {
+        "name": "Cryptonumerics (acquired by Snowflake)",
+        "position": "DevOps Cloud Developer Intern",
+        "url": "https://cryptonumerics.com/",
+        "startDate": "2019-09-03",
+        "endDate": "2019-12-20",
+        "highlights": [
+          ""
+        ]
+      },
+      {
+        "name": "VIA Rail Canada",
+        "position": "Innovation Engineer Intern",
+        "url": "https://www.viarail.ca",
+        "startDate": "2019-01-08",
+        "endDate": "2019-04-30",
+        "highlights": [
+          ""
+        ]
+      },
+      {
+        "name": "TD Bank",
+        "position": "DevOps Engineer Intern",
+        "url": "https://www.viarail.ca",
+        "startDate": "2017-09-05",
+        "endDate": "2018-08-31",
+        "highlights": [
+          ""
+        ]
+      },
+      {
+        "name": "Rave",
+        "position": "Backend Engineer Intern",
+        "url": "https://rave.io/",
+        "startDate": "2017-01-03",
+        "endDate": "2017-04-28",
+        "highlights": [
+          ""
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": "University of Waterloo",
+        "url": "https://uwaterloo.ca/",
+        "area": "Systems Design Engineering",
+        "studyType": "Bachelor of Applied Sciences",
+        "startDate": "2016-09-01",
+        "endDate": "2021-06-01"
+      }
+    ],
+    "languages": [
+      "Bash",
+      "CSS",
+      "HCL",
+      "HTML",
+      "JavaScript",
+      "Python"
+    ],
+    "skills": [
+      "Alerting",
+      "CI/CD",
+      "Git"
+    ],
+    "tools": [
+      "ArgoCD",
+      "Atlassian",
+      "AWS",
+      "Datadog",
+      "GCP",
+      "Github",
+      "Grafana",
+      "Helm",
+      "LaunchDarkly",
+      "Nx",
+      "Terraform"
+    ],
+    "interests": [
+      {
+        "name": "Wildlife",
+        "keywords": [
+          "Ferrets",
+          "Unicorns"
+        ]
+      }
+    ],
+    "projects": [
+      {
+        "name": "Home Lab",
+        "startDate": "2023-07-01",
+        "endDate": "present",
+        "description": "A",
+        "highlights": [
+        ],
+        "url": "https://github.com/j6nca"
+      },
+      {
+        "name": "Pomodoro Timer",
+        "startDate": "2023-05-01",
+        "endDate": "2023-05-02",
+        "description": "A simple pomodoro app to learn React",
+        "highlights": [
+        ],
+        "url": "https://github.com/j6nca/pomodoro"
+      },
+      {
+        "name": "Free Games Notifier",
+        "startDate": "2021-06-01",
+        "endDate": "present",
+        "description": "A script to pull freebies from Epic, supporting docker, k8s and github actions",
+        "highlights": [
+        ],
+        "url": "https://github.com/j6nca/free-game-notifier"
+      },
+      {
+        "name": "Personal Discord Bots",
+        "startDate": "2021-01-01",
+        "endDate": "2022-02-01",
+        "description": "A personal Discord bot developed to provide information for various game and movie APIs",
+        "highlights": [
+        ],
+        "url": "https://github.com/j6nca"
+      },
+      {
+        "name": "Luxify",
+        "startDate": "2020-01-01",
+        "endDate": "2021-01-01",
+        "description": "A restock notification service using Facebook's messaging API and various online store APIs to notify users as soon as highly coveted items are in stock",
+        "highlights": [
+        ]
+      }
+    ]
   }
