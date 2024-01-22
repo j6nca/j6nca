@@ -108,11 +108,19 @@
     ],
     "interests": [
       {
-        "name": "Wildlife",
-        "keywords": [
-          "Ferrets",
-          "Unicorns"
-        ]
+        "name": "Cooking"
+      },
+      {
+        "name": "Fishing"
+      },
+      {
+        "name": "Keyboards"
+      },
+      {
+        "name": "Music"
+      },
+      {
+        "name": "Video Games"
       }
     ],
     "projects": [
