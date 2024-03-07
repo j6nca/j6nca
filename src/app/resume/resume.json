@@ -32,17 +32,18 @@
       "startDate": "2022-01-05",
       "endDate": "present",
       "highlights": [
-        "Architected a system enabling developers to deploy fully-scoped ephemeral product environments for feature testing, incrementally improving consistency and rollout time",
+        "Architected a system enabling developers to deploy fully-scoped ephemeral product environments for feature testing, used by 50+ developers across 9+ teams",
         "Joined initiative as a developer to refactor in-house auth service to move towards leveraging auth service as a single source of truth, adding support for feature flags library (LaunchDarkly)",
         "Migrated and updated legacy IaC to provision environments alongside k8s services in a modularized fashion",
         "Simplified dependency management of docker images by using asdf",
-        "Co-led the migration of the code base and artifacts from GitLab to GitHub",
+        "Co-led the migration of code base and artifacts from GitLab to GitHub consolidating 2 productlines under one organization",
         "Directed the knowledge-sharing process for onboarding new hires, growing the team to 6 members",
-        "Orchestrated the deployment of SentinelOne and Datadog across product infrastructure",
-        "Implemented Datadog monitoring for product and critical internal services",
-        "Improved stability and consistency of production rollouts with readiness gates and pod disruption budget, reducing release downtime to zero",
+        "Orchestrated the deployment of SentinelOne and Datadog across product infrastructure (300+ nodes)",
+        "Implemented Datadog monitoring for product and internal services, improving incident detection",
+        "Improved stability and consistency of production rollouts with readiness gates and pod disruption budget, reducing release downtime while using ALB ingress controllers to zero",
         "Refactored release process to more align with GitOps strategy, enabling consistent communication to stakeholders as features get promoted into production",
-        "Refactored GitHub CI to use fine-grained OIDC roles for AWS authentication"
+        "Refactored GitHub CI to use fine-grained OIDC roles for AWS authentication",
+        "Refactored services to communicate internally as opposed to over the internet"
       ]
     },
     {
