@@ -1,7 +1,0 @@
-name: Build Resume PDF
-
-on:
-  # Runs on pushes targeting the default branch
-  push:
-    paths:
-        - resume/**
