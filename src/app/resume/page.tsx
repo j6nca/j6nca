@@ -15,7 +15,7 @@ export default async function Page() {
       <div className="right">
         <a href={data.basics.url}> {data.basics.url} </a><br/>
         <a> {data.basics.email} </a><br/>
-        {data.basics.profiles && data.basics.profiles.map((item, i) => (
+        {data.basics.profiles && data.basics.profiles.map((item: any, i: number) => (
           <div key={i}>
             <a href={item.url}> {item.url} </a>
           </div>
@@ -27,7 +27,7 @@ export default async function Page() {
     
     <div>
       <h2> Skills </h2>
-      {data.skills && data.skills.map((skill, s) => (
+      {data.skills && data.skills.map((skill: any, s: number) => (
         <div key={s}>
           <h3> {skill.name} </h3>
           <p> {skill.keywords.join(', ')}</p>
@@ -38,7 +38,7 @@ export default async function Page() {
 
     <div>
       <h2> Work Experience </h2>
-      {data.work && data.work.map((item, i) => (
+      {data.work && data.work.map((item: any, i: number) => (
         <div key={i}>
           
           <div className="splitline">
@@ -53,7 +53,7 @@ export default async function Page() {
           </div>
           
           <ul>
-          {item.highlights && item.highlights.map((highlight, h) => (
+          {item.highlights && item.highlights.map((highlight: any, h: number) => (
             <li key={h}> {highlight} </li>
             ))
           }
@@ -64,7 +64,7 @@ export default async function Page() {
     </div>
     <div>
       <h2> Projects </h2>
-      {data.projects && data.projects.map((item, i) => (
+      {data.projects && data.projects.map((item: any, i: number) => (
         <div key={i}>
           <div className="splitline">
             <div className="left">
