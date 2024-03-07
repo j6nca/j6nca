@@ -27,12 +27,12 @@
 }
 
 .resume .splitline .left{
-  width: 50%;
+  width: 70%;
   float: left;
 }
 
 .resume .splitline .right{
-  width: 50%;
+  width: 30%;
   float: right;
   text-align: right;
 }

@@ -13,12 +13,16 @@ export default async function Page() {
       </div>
 
       <div className="right">
-        <a href={data.basics.url}> {data.basics.url} </a><br/>
-        <a> {data.basics.email} </a><br/>
+        <a href={`mailto:${data.basics.email}`}>
+          <p>{data.basics.email}</p>
+        </a>
+        <a href={data.basics.url}>
+          <p>{data.basics.url}</p>
+        </a>
         {data.basics.profiles && data.basics.profiles.map((item: any, i: number) => (
-          <div key={i}>
-            <a href={item.url}> {item.url} </a>
-          </div>
+          <a key={i} href={item.url}>
+            <p> {item.url} </p>
+          </a>
           ))
         }
       </div>
