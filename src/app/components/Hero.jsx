@@ -15,7 +15,7 @@ const Hero = () => {
             My hobbies involve custom keyboards, cooking, fishing, and video games.
             Reach me at:&nbsp;
             <a className='highlight' href = 'mailto:me@j6n.ca'>me@j6n.ca</a>. 
-            You can download my cv <a className='highlight' href = './resume.pdf' target='_blank'>here</a> or, alternatively, view it via this request: <br/>
+            You can download my cv <a className='highlight' href = './resume' target='_blank'>here</a> or, alternatively, view it via this request: <br/>
             <code className="font-mono font-bold">
               curl https://j6n.ca/resume.json
             </code>
