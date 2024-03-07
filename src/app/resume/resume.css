@@ -1,0 +1,38 @@
+.resume h1{
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.resume h2{
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.resume h3{
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.resume ul{
+  list-style-type: circle;
+  list-style: circle inside none;
+}
+
+.resume li, .resume p, .resume a, .resume span{
+  font-size: 10px;
+}
+
+.resume li{
+  list-style-type: circle;
+}
+
+.resume .splitline .left{
+  width: 50%;
+  float: left;
+}
+
+.resume .splitline .right{
+  width: 50%;
+  float: right;
+  text-align: right;
+}

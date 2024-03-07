@@ -1,0 +1,191 @@
+{
+  "basics": {
+    "name": "Jonathan Ng",
+    "label": "Site Reliability Engineer",
+    "image": "",
+    "email": "me@j6n.ca",
+    "url": "https://j6n.ca",
+    "summary": "My Resume",
+    "location": {
+      "city": "Toronto",
+      "countryCode": "CA",
+      "region": "Ontario"
+    },
+    "profiles": [
+      {
+        "network": "Github",
+        "username": "j6nca",
+        "url": "https://github.com/j6nca"
+      },
+      {
+        "network": "LinkedIn",
+        "username": "j6n",
+        "url": "https://linkedin.com/in/j6n"
+      }
+    ]
+  },
+  "work": [
+    {
+      "name": "Tempo Software",
+      "position": "SRE II",
+      "url": "https://www.tempo.io",
+      "startDate": "2022-01-05",
+      "endDate": "present",
+      "highlights": [
+        "Architected a system enabling developers to deploy fully-scoped ephemeral product environments for feature testing, incrementally improving consistency and rollout time",
+        "Joined initiative as a developer to refactor in-house auth service to move towards leveraging auth service as a single source of truth, adding support for feature flags library (LaunchDarkly)",
+        "Migrated and updated legacy IaC to provision environments alongside k8s services in a modularized fashion",
+        "Simplified dependency management of docker images by using asdf",
+        "Co-led the migration of the code base and artifacts from GitLab to GitHub",
+        "Directed the knowledge-sharing process for onboarding new hires, growing the team to 6 members",
+        "Orchestrated the deployment of SentinelOne and Datadog across product infrastructure",
+        "Implemented Datadog monitoring for product and critical internal services",
+        "Improved stability and consistency of production rollouts with readiness gates and pod disruption budget, reducing release downtime to zero",
+        "Refactored release process to more align with GitOps strategy, enabling consistent communication to stakeholders as features get promoted into production",
+        "Refactored GitHub CI to use fine-grained OIDC roles for AWS authentication"
+      ]
+    },
+    {
+      "name": "TimePlay (now Stream6ix)",
+      "position": "Junior DevOps",
+      "url": "https://www.timeplay.com",
+      "startDate": "2021-04-18",
+      "endDate": "2021-12-30",
+      "highlights": [
+        "Used Ansible to manage scaling game infrastructure on AWS for a projected 700% increase in player traffic",
+        "Deployed infrastructure using AWS API Gateway, Lambda and ECS to reduce resource spin up times 93% down to 30s for new line of on-demand games",
+        "Created CI/CD pipelines for Unity projects using Unity Cloud Build to leverage tailored support and integrations"
+      ]
+    },
+    {
+      "name": "Cryptonumerics (acquired by Snowflake)",
+      "position": "DevOps Cloud Developer Intern",
+      "url": "https://cryptonumerics.com/",
+      "startDate": "2019-09-03",
+      "endDate": "2019-12-20",
+      "highlights": [
+        "Designed OAS dataset retrieval API to support popular cloud storage solutions",
+        "Refactored Spectron testing suite, improving test consistency by 100% and cutting test time down 89%"
+      ]
+    },
+    {
+      "name": "VIA Rail Canada",
+      "position": "Innovation Engineer Intern",
+      "url": "https://www.viarail.ca",
+      "startDate": "2019-01-08",
+      "endDate": "2019-04-30",
+      "highlights": [
+        "Developed telemetry solution using Kibana to monitor train health and activity, leveraging existing sensor data installed throughout the train and enabling engineers to diagnose issues remotely",
+        "Developed a bash script to automate set up of analytics solution across scalable fleet of train cars",
+        "Applied beacon technology to map customer journeys through trainstation via device pings"
+      ]
+    },
+    {
+      "name": "TD Bank",
+      "position": "DevOps Engineer Intern",
+      "url": "https://www.viarail.ca",
+      "startDate": "2017-09-05",
+      "endDate": "2018-08-31",
+      "highlights": [
+        "Generated a daily health report for stakeholders by compiling Jenkins build, and SonarQube results with Groovy",
+        "Coordinated migration of over 80 projects from several outdated instances of Jenkins, proposing a workflow to reduce over 90% of the planned work",
+        "Architected and introduced an experimental shared library system on Jenkins to streamline continuous integration pipeline for over 5 project teams",
+        "Administrator over Atlassian Toolstack, providing support and provisioning across all cloud platforms"
+      ]
+    },
+    {
+      "name": "Rave",
+      "position": "Backend Engineer Intern",
+      "url": "https://rave.io/",
+      "startDate": "2017-01-03",
+      "endDate": "2017-04-28",
+      "highlights": [
+        "Migrated video service from Postgres to Google Cloud Datastore, to improve consistency of transactions",
+        "Refactored location microservice, reducing redis queries by 50%"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "University of Waterloo",
+      "url": "https://uwaterloo.ca/",
+      "area": "Systems Design Engineering",
+      "studyType": "Bachelor of Applied Sciences",
+      "startDate": "2016-09-01",
+      "endDate": "2021-06-01"
+    }
+  ],
+  "skills": [
+    {
+      "keywords": [ "ArgoCD", "Atlassian", "AWS", "Datadog", "FluxCD", "GCP", "Git", "Grafana", "Helm", "LaunchDarkly", "Nx", "Prometheus", "Terraform"],
+      "name": "Tools"
+    },
+    {
+      "keywords": ["Bash", "CSS", "HCL", "HTML", "JavaScript", "Python"],
+      "name": "Languages"
+    }
+  ],
+  "interests": [
+    {
+      "name": "Cooking"
+    },
+    {
+      "name": "Fishing"
+    },
+    {
+      "name": "Keyboards"
+    },
+    {
+      "name": "Music"
+    },
+    {
+      "name": "Video Games"
+    }
+  ],
+  "projects": [
+    {
+      "name": "Home Lab",
+      "startDate": "2023-07-01",
+      "endDate": "present",
+      "description": "A home lab server for learning and hosting passion projects",
+      "highlights": [
+      ],
+      "url": "https://github.com/j6nca"
+    },
+    {
+      "name": "Pomodoro Timer",
+      "startDate": "2023-05-01",
+      "endDate": "2023-05-02",
+      "description": "A simple pomodoro app to learn React",
+      "highlights": [
+      ],
+      "url": "https://github.com/j6nca/pomodoro"
+    },
+    {
+      "name": "Free Games Notifier",
+      "startDate": "2021-06-01",
+      "endDate": "present",
+      "description": "A script to pull freebies from Epic, supporting docker, k8s and github actions",
+      "highlights": [
+      ],
+      "url": "https://github.com/j6nca/free-game-notifier"
+    },
+    {
+      "name": "Personal Discord Bots",
+      "startDate": "2021-01-01",
+      "endDate": "2022-02-01",
+      "description": "A personal Discord bot developed to provide information for various game and movie APIs",
+      "highlights": [
+      ],
+      "url": "https://github.com/j6nca"
+    },
+    {
+      "name": "Luxify",
+      "startDate": "2020-01-01",
+      "endDate": "2021-01-01",
+      "description": "A restock notification service using Facebook's messaging API and various online store APIs to notify users as soon as highly coveted items are in stock",
+      "highlights": [
+      ]
+    }
+  ]
+}
