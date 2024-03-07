@@ -3,7 +3,7 @@ import { promises as fs } from 'fs';
 export default async function Page() {
   const file = await fs.readFile(process.cwd() + '/src/app/resume/resume.json', 'utf8');
   const data = JSON.parse(file);
-  return <div className='resume'>
+  return <div className='resume font-mono'>
     <div className="splitline">
       <div className="left">
         <h1> {data.basics.name} </h1>
