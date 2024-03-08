@@ -43,7 +43,8 @@
         "Improved stability and consistency of production rollouts with readiness gates and pod disruption budget, reducing release downtime while using ALB ingress controllers to zero",
         "Refactored release process to more align with GitOps strategy, enabling consistent communication to stakeholders as features get promoted into production",
         "Refactored GitHub CI to use fine-grained OIDC roles for AWS authentication",
-        "Refactored services to communicate internally as opposed to over the internet"
+        "Refactored services to communicate internally as opposed to over the internet",
+        "Architected new sso permission structure standard for sres and developers for consolidating 5 product lines under 1"
       ]
     },
     {
