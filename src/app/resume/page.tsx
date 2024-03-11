@@ -17,11 +17,11 @@ export default async function Page() {
           <p>{data.basics.email}</p>
         </a>
         <a href={data.basics.url}>
-          <p>{data.basics.url}</p>
+          <p>{data.basics.url.replace('https://','')}</p>
         </a>
         {data.basics.profiles && data.basics.profiles.map((item: any, i: number) => (
           <a key={i} href={item.url}>
-            <p> {item.url} </p>
+            <p> {item.url.replace('https://','')} </p>
           </a>
           ))
         }
