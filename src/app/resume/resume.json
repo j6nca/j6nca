@@ -175,7 +175,7 @@
       "name": "Personal Discord Bots",
       "startDate": "2021-01-01",
       "endDate": "2022-02-01",
-      "description": "A personal Discord bot developed to provide information for various game and movie APIs",
+      "description": "A personal Discord bot developed to provide information from various game and movie APIs",
       "highlights": [
       ],
       "url": "https://github.com/j6nca"
@@ -184,7 +184,7 @@
       "name": "Luxify",
       "startDate": "2020-01-01",
       "endDate": "2021-01-01",
-      "description": "A restock notification service using Facebook's messaging API and various online store APIs to notify users as soon as highly coveted items are in stock",
+      "description": "A restock notification service using Facebook's messaging API and various online store APIs to notify userbase as soon as highly coveted items are in stock",
       "highlights": [
       ]
     }
