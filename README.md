@@ -3,7 +3,7 @@ I am a site reliability engineer with an interest in homelab and game developmen
 My hobbies involve keyboards, cooking, fitness, fishing, video games, and guitar.
 
 <!--START_SECTION:waka-->
-![Code Time](http://img.shields.io/badge/Code%20Time-54%20hrs%2014%20mins-blue)
+![Code Time](http://img.shields.io/badge/Code%20Time-56%20hrs%2048%20mins-blue)
 
 **I'm an Early 🐤** 
 
