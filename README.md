@@ -32,14 +32,13 @@ Sunday                   56 commits          █░░░░░░░░░░�
 🕑︎ Time Zone: America/Toronto
 
 💬 Programming Languages: 
-YAML                     15 mins             ████████████████████████░   95.46 % 
-Terraform                0 secs              █░░░░░░░░░░░░░░░░░░░░░░░░   04.54 % 
+No Activity Tracked This Week
 
 🔥 Editors: 
-VS Code                  16 mins             █████████████████████████   100.00 % 
+No Activity Tracked This Week
 
 💻 Operating System: 
-Linux                    16 mins             █████████████████████████   100.00 % 
+No Activity Tracked This Week
 ```
 
 **I Mostly Code in JavaScript** 
