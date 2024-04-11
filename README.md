@@ -3,8 +3,6 @@ I am a site reliability engineer with an interest in homelab and game developmen
 My hobbies involve keyboards, cooking, fitness, fishing, video games, and guitar.
 
 <!--START_SECTION:waka-->
-![Code Time](http://img.shields.io/badge/Code%20Time-66%20hrs%2054%20mins-blue)
-
 **I'm an Early 🐤** 
 
 ```text
@@ -32,13 +30,14 @@ Sunday                   56 commits          █░░░░░░░░░░�
 🕑︎ Time Zone: America/Toronto
 
 💬 Programming Languages: 
-No Activity Tracked This Week
+JSON                     10 mins             ████████████████████░░░░░   81.54 % 
+Other                    2 mins              █████░░░░░░░░░░░░░░░░░░░░   18.46 % 
 
 🔥 Editors: 
-No Activity Tracked This Week
+VS Code                  13 mins             █████████████████████████   100.00 % 
 
 💻 Operating System: 
-No Activity Tracked This Week
+Linux                    13 mins             █████████████████████████   100.00 % 
 ```
 
 **I Mostly Code in JavaScript** 
