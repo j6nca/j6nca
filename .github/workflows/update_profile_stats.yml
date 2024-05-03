@@ -16,10 +16,15 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           COMMIT_MESSAGE: "Updating profile stats"
           SHOW_EDITORS: false
-          SHOW_LINES_OF_CODE: false
           SHOW_LOC_CHART: false
           SHOW_OS: false
           SHOW_PROFILE_VIEWS: false
           SHOW_PROJECTS: false
           SHOW_SHORT_INFO: false
           SHOW_UPDATED_DATE: false
+          STATS_RANGE: "last_7_days"
+          SHOW_LINES_OF_CODE: true
+          SHOW_TOTAL_CODE_TIME: true
+          SHOW_COMMIT: false
+          SHOW_TOTAL_CODE_TIME: false
+          
