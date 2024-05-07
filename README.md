@@ -3,7 +3,7 @@ I am a site reliability engineer with an interest in homelab and game developmen
 My hobbies involve keyboards, cooking, fitness, fishing, video games, and guitar.
 
 <!--START_SECTION:waka-->
-![Code Time](http://img.shields.io/badge/Code%20Time-81%20hrs%2053%20mins-blue)
+![Code Time](http://img.shields.io/badge/Code%20Time-82%20hrs%2046%20mins-blue)
 
 ![Lines of code](https://img.shields.io/badge/From%20Hello%20World%20I%27ve%20Written-2.6%20million%20lines%20of%20code-blue)
 
@@ -26,11 +26,11 @@ Sunday                   60 commits          █░░░░░░░░░░�
 🕑︎ Time Zone: America/Toronto
 
 💬 Programming Languages: 
-Terraform                41 mins             ██████████░░░░░░░░░░░░░░░   40.16 % 
-Other                    14 mins             ███░░░░░░░░░░░░░░░░░░░░░░   13.47 % 
-Python                   12 mins             ███░░░░░░░░░░░░░░░░░░░░░░   12.05 % 
-Markdown                 12 mins             ███░░░░░░░░░░░░░░░░░░░░░░   11.69 % 
-Bash                     8 mins              ██░░░░░░░░░░░░░░░░░░░░░░░   08.11 % 
+YAML                     59 mins             ████████░░░░░░░░░░░░░░░░░   33.67 % 
+Terraform                41 mins             ██████░░░░░░░░░░░░░░░░░░░   23.61 % 
+Other                    25 mins             ████░░░░░░░░░░░░░░░░░░░░░   14.60 % 
+Markdown                 20 mins             ███░░░░░░░░░░░░░░░░░░░░░░   11.52 % 
+Python                   12 mins             ██░░░░░░░░░░░░░░░░░░░░░░░   07.08 % 
 ```
 
 **I Mostly Code in JavaScript** 
