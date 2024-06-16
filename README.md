@@ -3,6 +3,8 @@ I am a site reliability engineer with an interest in homelab and game developmen
 My hobbies involve keyboards, cooking, fitness, fishing, video games, and guitar.
 
 <!--START_SECTION:waka-->
+![Code Time](http://img.shields.io/badge/Code%20Time-94%20hrs%2054%20mins-blue)
+
 ![Lines of code](https://img.shields.io/badge/From%20Hello%20World%20I%27ve%20Written-3.2%20million%20lines%20of%20code-blue)
 
 📅 **I'm Most Productive on Wednesday** 
@@ -24,10 +26,10 @@ Sunday                   75 commits          █░░░░░░░░░░�
 🕑︎ Time Zone: America/Toronto
 
 💬 Programming Languages: 
-YAML                     2 hrs 24 mins       ███████████████████░░░░░░   75.50 % 
-Markdown                 40 mins             █████░░░░░░░░░░░░░░░░░░░░   20.91 % 
-Git Config               3 mins              ░░░░░░░░░░░░░░░░░░░░░░░░░   01.88 % 
-Bash                     2 mins              ░░░░░░░░░░░░░░░░░░░░░░░░░   01.50 % 
+YAML                     2 hrs 24 mins       ███████████████████░░░░░░   76.65 % 
+Markdown                 37 mins             █████░░░░░░░░░░░░░░░░░░░░   19.71 % 
+Git Config               3 mins              ░░░░░░░░░░░░░░░░░░░░░░░░░   01.91 % 
+Bash                     2 mins              ░░░░░░░░░░░░░░░░░░░░░░░░░   01.52 % 
 Other                    0 secs              ░░░░░░░░░░░░░░░░░░░░░░░░░   00.11 % 
 ```
 
