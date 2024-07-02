@@ -14,10 +14,7 @@ const Hero = () => {
             I am an observability and reliability engineer and a maker-of-things based in Toronto, Canada.
             I have an interest in homelab and game development.
             My hobbies involve custom keyboards, cooking, fishing, and video games.
-            View what I&apos;m currently working on
-            <a className='highlight' href='https://github.com/users/j6nca/projects/2/views/1'>here</a>
-            or check out my
-            <a className='highlight' href='https://docs.j6n.ca'>blog</a>.
+            View what I&apos;m currently working on <a className='highlight' href='https://github.com/users/j6nca/projects/2/views/1'>here</a> or check out my <a className='highlight' href='https://docs.j6n.ca'>blog</a>.
             Reach me at:&nbsp;
             <a className='highlight' href='mailto:me@j6n.ca'>me@j6n.ca</a>.
             You can download my cv <a className='highlight' href='./resume' target='_blank'>here</a> or, alternatively, view it via this request: <br />
