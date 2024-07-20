@@ -10,7 +10,7 @@ const Contact = () => {
           <ul className='flex flex-col sm:flex-row'>
               <ContactItem link='https://github.com/j6nca' name='github'/>
               <ContactItem link='https://www.linkedin.com/in/j6n' name='linkedin'/>
-              <ContactItem link='https://docs.j6n.ca' name='blog'/>
+              <ContactItem link='https://notes.j6n.ca' name='blog'/>
               <ContactItem link='mailto:me@j6n.ca' name='email'/>
           </ul>
         </div>
