@@ -2,8 +2,8 @@ name: Wakatime Generator
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 7 * * *'
+  # schedule:
+  #   - cron: '0 7 * * *'
   
 jobs:
   update-readme:
