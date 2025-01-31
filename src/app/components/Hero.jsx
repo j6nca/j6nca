@@ -28,7 +28,7 @@ const Hero = () => {
           <div>
             {/* <div className='rounded-full bg-[#181818] w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] absolute transform top-1/2 left-1/2 '></div> */}
             <Image
-              src='./images/linkedin.jpg'
+              src='./images/linkedin2.jpg'
               alt='linkedin display picture'
               width={300}
               height={300}

@@ -40,7 +40,6 @@
         "Implemented Datadog monitoring for k8s services, improving coverage by enabling support for opentelemetry to capture custom metrics",
         "Improved stability and consistency of production rollouts with readiness gates and pod disruption budget, reducing release downtime with ALB ingress controllers to zero",
         "Refactored release communication to more align with GitOps strategy, enabling consistent notifications to stakeholders as features get promoted into production and increasing service coverage to 100%",
-
         "Improved security of CI workflows across the organization by leveraging OIDC roles for AWS authentication, eliminating need for access keys in CI as well as creating a standard for repo and service based AWS access",
         "Led initiative to refactor services to leverage internal communications where possible, increasing visibility in product's inter-service communications",
         "Directed new SSO permission strategy for standardizing AWS permissions for SREs and developers across the company, leaning into GitOps and management of IaC"
@@ -118,11 +117,33 @@
   ],
   "skills": [
     {
-      "keywords": [ "ArgoCD", "Atlassian", "AWS", "Datadog", "FluxCD", "GCP", "Git", "Grafana", "Helm", "LaunchDarkly", "Nx", "Prometheus", "Terraform"],
+      "keywords": [
+        "ArgoCD",
+        "Atlassian",
+        "AWS",
+        "Datadog",
+        "FluxCD",
+        "GCP",
+        "Git",
+        "Grafana",
+        "Helm",
+        "Kubernetes",
+        "LaunchDarkly",
+        "Loki",
+        "Nx",
+        "Prometheus",
+        "Terraform"
+      ],
       "name": "Tools"
     },
     {
-      "keywords": ["Bash", "CSS", "HCL", "HTML", "JavaScript", "Python"],
+      "keywords": [
+        "Bash",
+        "CSS",
+        "HTML",
+        "JavaScript",
+        "Python"
+      ],
       "name": "Languages"
     }
   ],
@@ -149,8 +170,7 @@
       "startDate": "2023-07-01",
       "endDate": "present",
       "description": "A home lab server for learning and hosting passion projects",
-      "highlights": [
-      ],
+      "highlights": [],
       "url": "https://github.com/j6nca"
     },
     {
@@ -158,8 +178,7 @@
       "startDate": "2023-05-01",
       "endDate": "2023-05-02",
       "description": "A simple pomodoro app to learn React",
-      "highlights": [
-      ],
+      "highlights": [],
       "url": "https://github.com/j6nca/pomodoro"
     },
     {
@@ -167,8 +186,7 @@
       "startDate": "2021-06-01",
       "endDate": "present",
       "description": "A script to pull freebies from Epic, supporting docker, k8s and github actions",
-      "highlights": [
-      ],
+      "highlights": [],
       "url": "https://github.com/j6nca/free-game-notifier"
     },
     {
@@ -176,8 +194,7 @@
       "startDate": "2021-01-01",
       "endDate": "2022-02-01",
       "description": "A personal Discord bot developed to provide information from various game and movie APIs",
-      "highlights": [
-      ],
+      "highlights": [],
       "url": "https://github.com/j6nca"
     },
     {
@@ -185,8 +202,7 @@
       "startDate": "2020-01-01",
       "endDate": "2021-01-01",
       "description": "A restock notification service using Facebook's messaging API and various online store APIs to notify userbase as soon as highly coveted items are in stock",
-      "highlights": [
-      ]
+      "highlights": []
     }
   ]
 }
