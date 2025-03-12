@@ -38,7 +38,7 @@ const Hero = () => {
           </div>
         </div>
         <div className='col-span-12'>
-          <iframe src="https://trello.com/b/7yMlHI5q.html" title="todos"></iframe>
+          <iframe src="https://trello.com/b/7yMlHI5q" title="todos"></iframe>
         </div>
       </div>
     </section>
