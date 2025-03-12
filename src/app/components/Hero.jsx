@@ -38,10 +38,7 @@ const Hero = () => {
           </div>
         </div>
         <div className='col-span-12'>
-          <blockquote class="trello-board-compact">
-            <a href="https://trello.com/b/7yMlHI5q/todos">Trello Board</a>
-          </blockquote>
-          <script src="https://p.trellocdn.com/embed.min.js"></script>
+          <iframe src="https://trello.com/b/7yMlHI5q.html" title="todos"></iframe>
         </div>
       </div>
     </section>
