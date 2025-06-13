@@ -13,7 +13,7 @@
     },
     "profiles": [
       {
-        "network": "Github",
+        "network": "GitHub",
         "username": "j6nca",
         "url": "https://github.com/j6nca"
       },
@@ -26,11 +26,19 @@
   },
   "work": [
     {
+      "name": "StackAdapt",
+      "position": "DevOps Engineer (Observability and Internal Services)",
+      "url": "https://www.stackadapt.com/",
+      "startDate": "2024-05-28",
+      "endDate": "present",
+      "highlights": []
+    },
+    {
       "name": "Tempo Software",
       "position": "SRE II",
       "url": "https://www.tempo.io",
       "startDate": "2022-01-05",
-      "endDate": "present",
+      "endDate": "2024-05-10",
       "highlights": [
         "Architected internal tooling enabling developers to develop fully-scoped prod-like ephemeral environments for feature testing, used by 50+ developers across 9+ teams, improving release confidence and increasing release frequency 718%",
         "Joined initiative as a developer to refactor auth service, enabling feature management via LaunchDarkly",
