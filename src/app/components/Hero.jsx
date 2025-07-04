@@ -2,11 +2,17 @@ import React from 'react'
 import Image from 'next/image'
 
 const Hero = () => {
+  const imageStyle =
+  {
+    display: 'block',
+    margin: 'auto',
+    width: '50%'
+  };
   return (
     <section>
       <div className='grid grid-cols-1 lg:grid-cols-12'>
-        <div className='col-span-12'>
-          <h1 className='col-span-12 text-xl md:text-4xl'>
+        <div className='col-span-8'>
+          <h1 className='col-span-8 text-xl md:text-4xl'>
             <code className='font-extrabold'>Hello World</code>, I&apos;m Jon <span className='highlight'>[j6n]</span>
           </h1>
           <br />
@@ -23,15 +29,16 @@ const Hero = () => {
             </code>
           </p>
         </div>
-        <div className='col-span-12 py-20'>
+        <div className='col-span-8 py-20'>
           <div>
             {/* <div className='rounded-full bg-[#181818] w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] absolute transform top-1/2 left-1/2 '></div> */}
             <Image
               src='https://res.cloudinary.com/drwjkxxud/image/upload/v1738628474/MVIMG_20190823_132041_boaeqe_c_crop_w_3024_h_3024_ar_1_1_g_auto_ywcnjl.jpg'
               alt='linkedin display picture'
-              width={300}
-              height={300}
+              width='30vh'
+              height='30vh'
               className='rounded-full'
+              style={imageStyle}
             />
 
           </div>
