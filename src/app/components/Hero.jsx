@@ -6,6 +6,8 @@ const Hero = () => {
   {
     display: 'block',
     margin: 'auto',
+    width: '30vh',
+    height: '30vh',
   };
   return (
     <section>
@@ -34,8 +36,6 @@ const Hero = () => {
             <Image
               src='https://res.cloudinary.com/drwjkxxud/image/upload/v1738628474/MVIMG_20190823_132041_boaeqe_c_crop_w_3024_h_3024_ar_1_1_g_auto_ywcnjl.jpg'
               alt='linkedin display picture'
-              width='30vh'
-              height='30vh'
               className='rounded-full'
               style={imageStyle}
             />
