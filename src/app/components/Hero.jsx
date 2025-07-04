@@ -10,7 +10,7 @@ const Hero = () => {
   };
   return (
     <section>
-      <div className='grid grid-cols-1 lg:grid-cols-12'>
+      <div className='grid grid-cols-1 lg:grid-cols-8'>
         <div className='col-span-8'>
           <h1 className='col-span-8 text-xl md:text-4xl'>
             <code className='font-extrabold'>Hello World</code>, I&apos;m Jon <span className='highlight'>[j6n]</span>
