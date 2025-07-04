@@ -6,8 +6,6 @@ const Hero = () => {
   {
     display: 'block',
     margin: 'auto',
-    minWidth: '360px',
-    minHeight: '360px',
   };
   return (
     <section>
