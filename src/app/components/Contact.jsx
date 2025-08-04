@@ -8,7 +8,7 @@ const Contact = () => {
       <ul className='flex flex-col sm:flex-row'>
         <div className='grid grid-cols-7 gap-2'>
           <ContactItem link='https://github.com/j6nca' name='github' />
-          <ContactItem link='https://notes.j6n.ca' name='blog' />
+          <ContactItem link='https://blog.j6n.ca' name='blog' />
           <ContactItem link='https://meow.j6n.dev' name='kube-cats' />
           <ContactItem link='https://monkeytype.com/profile/j6n' name='monkeytype' />
           <ContactItem link='mailto:me@j6n.ca' name='email' />
