@@ -32,11 +32,12 @@
       "startDate": "2024-05-28",
       "endDate": "present",
       "highlights": [
-        "Rollout of metadata labelling standardization across Kubernetes infrastructure, enabling support for team owner-based service alert routing",
+        "Rollout of metadata labelling standardization across Kubernetes infrastructure, enabling support for dynamic owner-based service alert routing",
         "Improve reliability of Observability stack, including migrating Grafana and Grafana OnCall backends from sqlite to postgres, and enabling Grafana to operate in high-availability mode",
         "Rollout of Gatus and accompanying Prometheus alerts to enable endpoint monitoring and quick feedback to critical service teams",
-        "Migrating Grafana and Loki to ECS, improving scalability and reliability of the services",
-        "Designed and conducted an observability workshop for Engineering department with over 60 attendees, covering metrics, logging, tracing, profiling, and alerting and providing working examples via locally runnable stack"
+        "Migrating Grafana and Loki from EC2 to ECS, improving scalability and reliability of core observability services",
+        "Designed and conducted an observability workshop for Engineering department with over 60 attendees, covering metrics, logging, tracing, profiling, and alerting and providing working examples via locally runnable stack",
+        "Automate deployment of Oncall and alert rule changes along with rolling out live alert rule validation using pint"
       ]
     },
     {
