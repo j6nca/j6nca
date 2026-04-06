@@ -36,6 +36,7 @@
         "Improve reliability of Observability stack, including migrating Grafana and Grafana OnCall backends from sqlite to postgres, and enabling Grafana to operate in high-availability mode",
         "Rollout of Gatus and accompanying Prometheus alerts to enable endpoint monitoring and quick feedback to critical service teams",
         "Migrating Grafana and Loki from EC2 to ECS, improving scalability and reliability of core observability services",
+        "Rollout structured metadata usage on Loki for k8s resources, improving cardinality and performance on Loki",
         "Designed and conducted an observability workshop for Engineering department with over 60 attendees, covering metrics, logging, tracing, profiling, and alerting and providing working examples via locally runnable stack",
         "Automate deployment of Oncall and alert rule changes along with rolling out live alert rule validation using pint"
       ]
@@ -180,12 +181,20 @@
   ],
   "projects": [
     {
+      "name": "Basalt",
+      "startDate": "2026-03-01",
+      "endDate": "present",
+      "description": "A static site generator to render my Obsidian vault as a blog",
+      "highlights": [],
+      "url": "https://basalt.j6n.dev"
+    },
+    {
       "name": "Kube Cats",
       "startDate": "2025-05-01",
       "endDate": "present",
       "description": "A fun Kubernetes workload visualizer using pixel cats written with Go and React",
       "highlights": [],
-      "url": "https://github.com/j6nca/kube-cats"
+      "url": "https://meow.j6n.dev"
     },
     {
       "name": "Home Lab",
