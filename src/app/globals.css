@@ -394,6 +394,17 @@ body::before {
   100% { opacity: 0; transform: translate(-50%, 10px); }
 }
 
+/* On mobile the stacked hero is taller than the viewport, so let the scroll
+   hint flow below the terminal instead of overlapping it. */
+@media (max-width: 899px) {
+  .hero { flex-direction: column; justify-content: center; }
+  .scroll-hint {
+    position: static;
+    transform: none;
+    margin-top: 2.5rem;
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * Experience timeline
  * ------------------------------------------------------------------ */
