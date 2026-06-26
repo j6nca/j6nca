@@ -1,66 +1,96 @@
-import React from "react";
-import Image from "next/image";
+import React from 'react'
+import Reveal from './Reveal'
 
-const Hero = () => {
-  const imageStyle = {
-    display: "block",
-    margin: "auto",
-    width: "30vh",
-    height: "30vh",
-  };
+const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => {
   return (
-    <section>
-      <div className="grid grid-cols-1 lg:grid-cols-8">
-        <div className="col-span-8">
-          <h1 className="col-span-8 text-xl md:text-4xl">
-            <code className="font-extrabold">Hello World</code>, I&apos;m Jon{" "}
-            <span className="highlight">[j6n]</span>
-          </h1>
-          <br />
-          <p className="text-sm md:text-2xl">
-            I am a DevOps Engineer and a maker-of-things based in Toronto,
-            Canada. I have an interest in homelab, observability and game
-            development. My hobbies involve custom keyboards, cooking, fishing,
-            and video games. View what I&apos;m currently working on{" "}
-            <a className="highlight" href="https://trello.com/b/7yMlHI5q/todos">
-              here
-            </a>
-            , dive into my{" "}
-            <a className="highlight" href="https://blog.j6n.ca">
-              blog
-            </a>
-            , or check out what I&apos;m running in my{" "}
-            <a className="highlight" href="https://meow.j6n.dev">
-              homelab
-            </a>
-            . Reach me at:&nbsp;
-            <a className="highlight" href="mailto:me@j6n.ca">
-              me@j6n.ca
-            </a>
-            . You can download my cv{" "}
-            <a className="highlight" href="./resume" target="_blank">
-              here
-            </a>{" "}
-            or, alternatively, view it via this request: <br />
-            <code className="font-mono font-bold">
-              curl https://j6n.ca/resume.json
-            </code>
-          </p>
+    <section className="hero">
+      {/* animated gradient mesh backdrop */}
+      <div className="mesh" aria-hidden="true">
+        <span className="blob a" />
+        <span className="blob b" />
+        <span className="blob c" />
+      </div>
+
+      <div className="wrap hero-grid">
+        <div>
+          <Reveal>
+            <span className="eyebrow">~/j6n — whoami</span>
+          </Reveal>
+
+          <Reveal delay={80}>
+            <h1 className="hero-title">
+              <span className="gradient-text">{name}</span>
+            </h1>
+          </Reveal>
+
+          <Reveal delay={160}>
+            <p className="hero-sub">
+              {label}
+              <span className="sep">/</span>
+              <span className="highlight">maker-of-things</span>
+            </p>
+          </Reveal>
+
+          <Reveal delay={240}>
+            <p className="hero-lead">
+              I build and keep distributed systems healthy — observability,
+              internal platforms, and the automation that makes shipping calm.
+              Based in Toronto, deep into homelab, metrics, and custom keyboards.
+            </p>
+          </Reveal>
+
+          <Reveal delay={320}>
+            <div className="hero-cta">
+              <a className="btn btn-primary" href="./resume" target="_blank" rel="noreferrer">
+                View résumé →
+              </a>
+              <a className="btn btn-ghost" href="https://blog.j6n.ca">
+                Read the blog
+              </a>
+              <a className="btn btn-ghost" href="https://meow.j6n.dev">
+                Peek the homelab
+              </a>
+            </div>
+          </Reveal>
         </div>
-        <div className="col-span-8 py-20">
-          <div>
-            {/* <div className='rounded-full bg-[#181818] w-[200px] h-[200px] lg:w-[250px] lg:h-[250px] absolute transform top-1/2 left-1/2 '></div> */}
-            <Image
+
+        <Reveal variant="scale" delay={200}>
+          <div className="portrait-wrap">
+            <img
+              className="portrait"
               src="./images/linkedin2.jpg"
-              alt="linkedin display picture"
-              className="rounded-full"
-              style={imageStyle}
+              alt="Jonathan Ng"
             />
           </div>
-        </div>
+
+          <div className="term" aria-hidden="true">
+            <div className="term-bar">
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="term-body">
+              <div>
+                <span className="prompt">$</span> kubectl get me
+              </div>
+              <div>
+                NAME&nbsp;&nbsp;READY&nbsp;&nbsp;STATUS&nbsp;&nbsp;&nbsp;ROLE
+              </div>
+              <div>
+                j6n&nbsp;&nbsp;&nbsp;1/1&nbsp;&nbsp;&nbsp;
+                <span className="ok">Running</span>&nbsp;&nbsp;SRE
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+
+      <div className="scroll-hint" aria-hidden="true">
+        <span className="mouse" />
+        scroll
       </div>
     </section>
-  );
-};
+  )
+}
 
-export default Hero;
+export default Hero

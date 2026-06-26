@@ -6,8 +6,9 @@ import './resume/resume.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Jonathan Ng',
-  description: 'Learning NextJS',
+  title: 'Jonathan Ng — Site Reliability Engineer',
+  description:
+    'Jonathan Ng (j6n) — Site Reliability Engineer in Toronto. Observability, internal platforms, homelab, and the automation that makes shipping calm.',
 }
 
 export default function RootLayout({

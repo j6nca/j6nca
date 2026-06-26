@@ -19,7 +19,9 @@ Personal profile / portfolio site for j6nca (Jonathan Ng), a DevOps engineer. A 
 
 ## Structure
 - `src/app/` — Next.js App Router entry (`layout.tsx`, `page.tsx`, `globals.css`)
-- `src/app/components/` — `Hero`, `Contact`, `ContactItem` (JSX)
+- `src/app/components/` — landing sections (`Hero`, `About`, `Experience`, `Projects`, `Skills`, `Contact`, `ContactItem`) and `Reveal` (JSX). `Reveal` is a `'use client'` IntersectionObserver wrapper for scroll-triggered animations; the section components are server components.
+- `src/app/lib/resume.ts` — `getResume()` reads `resume.json` at build time, plus `formatDate`/`formatRange`. `page.tsx` composes the landing sections from this data, so `resume.json` drives both `/` and `/resume`.
+- Landing page design system (dark theme, animated gradient mesh, glass cards, `.reveal` scroll animations, scroll-driven progress bar) lives in `globals.css`; `/resume` styling stays scoped under `.resume` in `resume.css`.
 - `src/app/resume/` — `/resume` route, `resume.css`, and `resume.json` (source of truth for resume content)
 - `public/` — static assets; `public/resume.json` is a symlink to `src/app/resume/resume.json`
 - `.github/workflows/` — `nextjs.yml` (build/deploy), `metrics.yml`, `update_profile_stats.yml`
