@@ -157,13 +157,7 @@
       "name": "Tools"
     },
     {
-      "keywords": [
-        "Bash",
-        "CSS",
-        "HTML",
-        "JavaScript",
-        "Python"
-      ],
+      "keywords": ["Bash", "CSS", "HTML", "JavaScript", "Python"],
       "name": "Languages"
     }
   ],
@@ -186,12 +180,20 @@
   ],
   "projects": [
     {
-      "name": "Basalt",
-      "startDate": "2026-03-01",
-      "endDate": "present",
-      "description": "A static site generator to render my Obsidian vault as a blog",
+      "name": "Thanos Tabs",
+      "startDate": "2026-05-01",
+      "endDate": "2026-06-01",
+      "description": "Keep browser tab bulk at a minimum, while preserving important tabs",
       "highlights": [],
-      "url": "https://basalt.j6n.dev"
+      "url": "https://github.com/ctrl-research/thanos-tabs"
+    },
+    {
+      "name": "Nebula.md",
+      "startDate": "2026-03-01",
+      "endDate": "2026-06-01",
+      "description": "A static site generator to render my Obsidian vault as an inter-connected blog",
+      "highlights": [],
+      "url": "https://nebula-md.j6n.dev"
     },
     {
       "name": "Kube Cats",
@@ -208,6 +210,14 @@
       "description": "A home lab server for learning and hosting passion projects",
       "highlights": [],
       "url": "https://github.com/j6nca/homelab-cluster"
+    },
+    {
+      "name": "Keyboards",
+      "startDate": "2023-05-01",
+      "endDate": "present",
+      "description": "Custom keyboard designs, firmware, layouts and builds",
+      "highlights": [],
+      "url": "https://github.com/ctrl-research/keyboards"
     },
     {
       "name": "Pomodoro Timer",
