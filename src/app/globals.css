@@ -357,6 +357,12 @@ body::before {
 .term-body { padding: 0.9rem 1rem; line-height: 1.7; color: var(--muted); }
 .term-body .ok { color: var(--accent-cyan); }
 .term-body .prompt { color: var(--accent-violet); }
+.term-table {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  column-gap: 1.5rem;
+}
+.term-table > span { text-align: left; }
 
 .scroll-hint {
   position: absolute;

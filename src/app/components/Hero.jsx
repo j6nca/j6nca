@@ -73,12 +73,15 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
               <div>
                 <span className="prompt">$</span> kubectl get me
               </div>
-              <div>
-                NAME&nbsp;&nbsp;READY&nbsp;&nbsp;STATUS&nbsp;&nbsp;&nbsp;ROLE
-              </div>
-              <div>
-                j6n&nbsp;&nbsp;&nbsp;1/1&nbsp;&nbsp;&nbsp;
-                <span className="ok">Running</span>&nbsp;&nbsp;SRE
+              <div className="term-table">
+                <span>NAME</span>
+                <span>READY</span>
+                <span>STATUS</span>
+                <span>ROLE</span>
+                <span>j6n</span>
+                <span>1/1</span>
+                <span className="ok">Running</span>
+                <span>SRE</span>
               </div>
             </div>
           </div>
