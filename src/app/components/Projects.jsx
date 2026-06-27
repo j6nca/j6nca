@@ -1,5 +1,6 @@
 import React from 'react'
 import Reveal from './Reveal'
+import Contributions from './Contributions'
 import { formatRange } from '../lib/resume'
 
 const hostOf = (url) => {
@@ -10,7 +11,7 @@ const hostOf = (url) => {
   }
 }
 
-const Projects = ({ projects = [] }) => {
+const Projects = ({ projects = [], contributions }) => {
   return (
     <section id="projects" className="section">
       <div className="wrap">
@@ -54,6 +55,8 @@ const Projects = ({ projects = [] }) => {
             )
           })}
         </div>
+
+        <Contributions data={contributions} />
       </div>
     </section>
   )

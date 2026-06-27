@@ -16,9 +16,16 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+  # Daily refresh of the contribution snapshot. Commits the new snapshot back to
+  # main, which also counts as repo activity so the schedule isn't auto-disabled
+  # (GitHub disables scheduled workflows after ~60 days of inactivity).
+  schedule:
+    - cron: "0 8 * * *"
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages.
+# contents:write lets the scheduled run commit the refreshed snapshot.
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -77,6 +84,29 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json', '**/yarn.lock') }}-
       - name: Install dependencies
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
+      # Refresh the GitHub contribution snapshot baked into the static export.
+      # Non-fatal: a transient API failure falls back to the committed snapshot.
+      - name: Refresh contribution snapshot
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+        run: node scripts/fetch-contributions.mjs
+      # On the daily run, persist the refreshed snapshot back to main. The
+      # `updated` date changes every day, so there is always a diff to commit —
+      # which keeps the schedule alive. Commits made with GITHUB_TOKEN do not
+      # re-trigger workflows, so this never loops.
+      - name: Commit refreshed snapshot
+        if: github.event_name == 'schedule'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/app/data/contributions.json
+          if git diff --staged --quiet; then
+            echo "No snapshot changes to commit."
+          else
+            git commit -m "chore: refresh contribution snapshot"
+            git push
+          fi
       - name: Build with Next.js
         run: ${{ steps.detect-package-manager.outputs.runner }} next build
       # - name: Static HTML export with Next.js

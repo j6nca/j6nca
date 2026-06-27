@@ -5,9 +5,11 @@ import Projects from './components/Projects'
 import Skills from './components/Skills'
 import Contact from './components/Contact'
 import { getResume } from './lib/resume'
+import { getContributions } from './lib/contributions'
 
 export default async function Home() {
   const data = await getResume()
+  const contributions = await getContributions()
 
   return (
     <>
@@ -16,7 +18,7 @@ export default async function Home() {
         <Hero name={data.basics.name} label={data.basics.label} />
         <About />
         <Experience work={data.work} />
-        <Projects projects={data.projects} />
+        <Projects projects={data.projects} contributions={contributions} />
         <Skills skills={data.skills} />
         <Contact />
         <footer className="footer">
