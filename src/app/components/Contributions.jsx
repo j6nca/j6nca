@@ -36,7 +36,7 @@ const Contributions = ({ data }) => {
       <Reveal delay={60}>
         <p className="contrib-sub">
           {data.totalContributions.toLocaleString()} contributions in the last
-          year · snapshot from {data.updated}
+          year · Updated {data.updated}
         </p>
       </Reveal>
 

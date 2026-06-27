@@ -577,6 +577,7 @@ body::before {
  * ------------------------------------------------------------------ */
 .contrib {
   margin-top: clamp(2.5rem, 6vh, 4rem);
+  text-align: center;
 }
 .contrib-subhead {
   font-size: clamp(1.3rem, 3vw, 1.8rem);
@@ -648,7 +649,7 @@ body::before {
   margin-top: 0.9rem;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 4px;
   font-size: 0.72rem;
   color: var(--faint);
