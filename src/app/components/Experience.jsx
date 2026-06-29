@@ -1,5 +1,6 @@
 import React from 'react'
 import Reveal from './Reveal'
+import WorkHighlights from './WorkHighlights'
 import { formatRange } from '../lib/resume'
 
 const Experience = ({ work = [] }) => {
@@ -30,13 +31,7 @@ const Experience = ({ work = [] }) => {
                   {formatRange(job.startDate, job.endDate)}
                 </div>
               </div>
-              {job.highlights && job.highlights.length > 0 && (
-                <ul className="tl-highlights">
-                  {job.highlights.slice(0, 3).map((h, hi) => (
-                    <li key={hi}>{h}</li>
-                  ))}
-                </ul>
-              )}
+              <WorkHighlights highlights={job.highlights} />
             </Reveal>
           ))}
         </div>

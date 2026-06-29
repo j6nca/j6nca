@@ -475,6 +475,32 @@ body::before {
   left: 0;
   color: var(--accent);
 }
+.tl-highlights li.tl-extra {
+  animation: tl-reveal 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes tl-reveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.tl-more {
+  margin-top: 0.85rem;
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  color: var(--accent-cyan);
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+.tl-more:hover { opacity: 0.75; }
+.tl-more:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
 
 /* ------------------------------------------------------------------ *
  * Cards (projects / generic glass)

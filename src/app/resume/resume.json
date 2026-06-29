@@ -180,9 +180,17 @@
   ],
   "projects": [
     {
+      "name": "Medieval-ution",
+      "startDate": "2026-06-01",
+      "endDate": "present",
+      "description": "A fast-paced team-based first person arena game",
+      "highlights": [],
+      "url": "https://github.com/ctrl-research/fps"
+    },
+    {
       "name": "Thanos Tabs",
       "startDate": "2026-05-01",
-      "endDate": "2026-06-01",
+      "endDate": "2026-05-07",
       "description": "Keep browser tab bulk at a minimum, while preserving important tabs",
       "highlights": [],
       "url": "https://github.com/ctrl-research/thanos-tabs"
