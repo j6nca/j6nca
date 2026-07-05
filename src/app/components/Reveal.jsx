@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 /**
  * Reveal — zero-dependency scroll-triggered animation wrapper.
  *
- * Wraps children in an element that fades/slides into view the first time it
+ * Wraps children in an element that fades/slides into view each time it
  * enters the viewport, using IntersectionObserver. Falls back to visible if
  * the API is unavailable (e.g. very old browsers / SSR snapshot).
  *
@@ -13,7 +13,7 @@ import React, { useEffect, useRef, useState } from 'react'
  *   variant  'up' | 'scale' | 'left' | 'right'  (default 'up')
  *   delay    ms to stagger the reveal (default 0)
  *   as       element tag to render (default 'div')
- *   once     only animate the first time it's seen (default true)
+ *   once     only animate the first time it's seen (default false)
  */
 const variantClass = {
   up: '',
@@ -27,7 +27,7 @@ const Reveal = ({
   variant = 'up',
   delay = 0,
   as: Tag = 'div',
-  once = true,
+  once = false,
   className = '',
   style,
   ...rest

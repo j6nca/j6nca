@@ -76,13 +76,10 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
                   </Reveal>
 
                   <Reveal delay={440}>
-                    <div className="term-cmd-gap">
-                      <Prompt cmd="ls ./links" />
-                    </div>
                     <div className="term-links">
-                      <a href="./resume" target="_blank" rel="noreferrer">resume/</a>
-                      <a href="https://blog.j6n.ca">blog/</a>
-                      <a href="https://meow.j6n.dev">homelab/</a>
+                      <a href="./resume" target="_blank" rel="noreferrer">resume</a>
+                      <a href="https://blog.j6n.ca">blog</a>
+                      <a href="https://meow.j6n.dev">homelab</a>
                     </div>
                   </Reveal>
                 </div>

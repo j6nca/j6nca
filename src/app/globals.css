@@ -395,9 +395,8 @@ body::before {
   font-size: 0.9rem;
   line-height: 1.8;
 }
-.term-cmd-gap { margin-top: 1.8rem; }
 .term-links {
-  margin-top: 0.4rem;
+  margin-top: 1.8rem;
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 2rem;

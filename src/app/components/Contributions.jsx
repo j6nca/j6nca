@@ -34,6 +34,12 @@ const Contributions = ({ data }) => {
   useEffect(() => {
     const card = cardRef.current
     if (!card) return
+
+    // On narrow screens the grid overflows horizontally — start scrolled to
+    // the right so the most recent weeks (today) are in view.
+    const scroller = card.querySelector('.contrib-scroll')
+    if (scroller) scroller.scrollLeft = scroller.scrollWidth
+
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const cells = Array.from(card.querySelectorAll('.contrib-grid .contrib-day'))
