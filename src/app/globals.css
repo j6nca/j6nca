@@ -236,22 +236,7 @@ body::before {
   overflow: hidden;
 }
 
-.hero-title {
-  font-size: clamp(2.7rem, 9vw, 6rem);
-  font-weight: 850;
-  line-height: 0.98;
-  letter-spacing: -0.035em;
-  margin: 1.2rem 0 0;
-}
-
-.hero-sub {
-  margin-top: 1.4rem;
-  font-size: clamp(1.05rem, 2.2vw, 1.5rem);
-  color: var(--text);
-  font-weight: 500;
-}
-.hero-sub .sep { color: var(--faint); margin: 0 0.5rem; }
-
+/* Shared lead/CTA styles (used by About and Contact) */
 .hero-lead {
   margin-top: 1.4rem;
   max-width: 54ch;
@@ -353,6 +338,46 @@ body::before {
   margin: 0 auto;
   font-size: clamp(0.68rem, 1.3vw, 0.95rem);
 }
+
+/* whoami output: figlet-style name + plain terminal text */
+.term-name {
+  margin: 0;
+  font-size: clamp(0.42rem, 1.15vw, 0.72rem);
+  line-height: 1.2;
+  font-weight: 400;
+  white-space: pre;
+  overflow-x: auto;
+}
+.term-line {
+  margin-top: 1.4rem;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+.term-line .sep { color: var(--faint); margin: 0 0.5rem; }
+.term-text {
+  margin-top: 1rem;
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.8;
+}
+.term-cmd-gap { margin-top: 1.8rem; }
+.term-links {
+  margin-top: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 2rem;
+  font-size: 0.95rem;
+}
+.term-links a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+.term-links a:hover,
+.term-links a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .term-art {
   margin: 0.5rem 0 0;
   color: #87b7e1;
@@ -397,6 +422,20 @@ body::before {
   0% { opacity: 0; transform: translate(-50%, 0); }
   40% { opacity: 1; }
   100% { opacity: 0; transform: translate(-50%, 10px); }
+}
+
+/* Fade the hint out over the first stretch of scroll — fully visible only
+   at the very top of the page. */
+@supports (animation-timeline: scroll()) {
+  .scroll-hint {
+    animation: fade-hint linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0 50vh;
+  }
+  @keyframes fade-hint {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
 }
 
 /* On mobile the stacked hero is taller than the viewport, so let the scroll
@@ -702,14 +741,19 @@ body::before {
   font-size: 0.95rem;
 }
 
+/* Card chrome (border, bg, labels, legend) fades in with --card-o, driven
+   by scroll progress in Contributions — the matrix scramble resolves as it
+   appears. Defaults to 1 for no-JS / reduced-motion. */
 .contrib-card {
   margin-top: 1.8rem;
   padding: 1.4rem 1.5rem 1.2rem;
   border-radius: 18px;
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, calc(0.04 * var(--card-o, 1)));
+  border: 1px solid rgba(255, 255, 255, calc(0.09 * var(--card-o, 1)));
 }
+.contrib-card.is-solid { backdrop-filter: blur(10px); }
+.contrib-months,
+.contrib-legend { opacity: var(--card-o, 1); }
 
 /* The grid is wider than small viewports — let it scroll horizontally. */
 .contrib-scroll {
@@ -755,6 +799,16 @@ body::before {
 .contrib-day.lvl-4 {
   background: var(--accent-cyan);
   box-shadow: 0 0 6px -1px rgba(235, 87, 33, 0.7);
+}
+
+/* Matrix-rain scramble state (pre-resolve): green instead of brand orange */
+.contrib-day.mx.lvl-0 { background: rgba(255, 255, 255, 0.04); }
+.contrib-day.mx.lvl-1 { background: rgba(48, 209, 88, 0.22); }
+.contrib-day.mx.lvl-2 { background: rgba(48, 209, 88, 0.42); }
+.contrib-day.mx.lvl-3 { background: rgba(48, 209, 88, 0.68); }
+.contrib-day.mx.lvl-4 {
+  background: #30d158;
+  box-shadow: 0 0 7px -1px rgba(48, 209, 88, 0.8);
 }
 
 .contrib-legend {
