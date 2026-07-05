@@ -64,12 +64,17 @@ const buildGraph = () => {
   // hub notes reference each other
   for (let i = 1; i < CLUSTERS; i++) edges.push([i - 1, i])
 
-  const stars = Array.from({ length: 90 }, () => ({
-    x: rand(),
-    y: rand(),
-    a: 0.08 + rand() * 0.3,
-    r: rand() < 0.85 ? 0.7 : 1.2,
-  }))
+  // three star layers; `par` is each layer's parallax factor against the orbit
+  const stars = Array.from({ length: 130 }, (_, i) => {
+    const layer = i % 3
+    return {
+      x: rand(),
+      y: rand(),
+      a: [0.1, 0.2, 0.35][layer] + rand() * 0.15,
+      r: [0.6, 1, 1.5][layer],
+      par: [0.015, 0.04, 0.08][layer],
+    }
+  })
 
   return { nodes, edges, centers, stars }
 }
@@ -90,6 +95,23 @@ const ShowcaseNebula = () => {
     let width = 0
     let height = 0
 
+    // Pre-rendered halo sprites (radial gradients are too slow per-node).
+    const makeHalo = ([r, g, b]) => {
+      const c = document.createElement('canvas')
+      c.width = c.height = 64
+      const g2 = c.getContext('2d')
+      const grad = g2.createRadialGradient(32, 32, 0, 32, 32, 32)
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.55)`)
+      grad.addColorStop(0.4, `rgba(${r},${g},${b},0.16)`)
+      grad.addColorStop(1, 'rgba(0,0,0,0)')
+      g2.fillStyle = grad
+      g2.fillRect(0, 0, 64, 64)
+      return c
+    }
+    const halos = new Map(
+      [GREEN, PURPLE, WHITE].map((color) => [color, makeHalo(color)])
+    )
+
     const resize = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       width = canvas.clientWidth
@@ -106,35 +128,42 @@ const ShowcaseNebula = () => {
       const cosT = Math.cos(theta)
       const sinX = Math.sin(TILT)
       const cosX = Math.cos(TILT)
-      const unit = Math.min(width, height) * 0.42
+      // Camera sits close to the cloud: near notes swing past the lens and
+      // pop out of the screen before fading as they cross it.
+      const unit = Math.min(width, height) * 0.62
       const cx = width / 2
       const cy = height / 2
-      const F = 3.2 // perspective distance
+      const F = 1.7 // perspective distance (small = aggressive pop)
 
       const project = (n) => {
         const x = n.x * cosT - n.z * sinT
         const z = n.x * sinT + n.z * cosT
         const y = n.y * cosX - z * sinX
         const depth = n.y * sinX + z * cosX
-        const s = F / (F + depth)
-        return { sx: cx + x * unit * s, sy: cy + y * unit * s, s, depth }
+        const s = F / Math.max(0.4, F + depth)
+        // fade out anything flying past the camera instead of blowing up
+        const fade = Math.min(1, Math.max(0, (F + depth - 0.3) / 0.35))
+        return { sx: cx + x * unit * s, sy: cy + y * unit * s, s, depth, fade }
       }
 
       ctx.clearRect(0, 0, width, height)
 
-      // fixed backdrop stars
+      // backdrop stars, three layers drifting against the orbit (parallax)
       stars.forEach((st) => {
+        let x = (st.x * width - theta * st.par * width) % width
+        if (x < 0) x += width
         ctx.fillStyle = `rgba(255,255,255,${st.a})`
-        ctx.fillRect(st.x * width, st.y * height, st.r, st.r)
+        ctx.fillRect(x, st.y * height, st.r, st.r)
       })
 
       // nebula glow around the three largest clusters
       centers.slice(0, 3).forEach((c, i) => {
         const pr = project(c)
+        if (!pr.fade) return
         const radius = unit * 0.55 * pr.s
         const [r, g, b] = i % 2 ? PURPLE : GREEN
         const grad = ctx.createRadialGradient(pr.sx, pr.sy, 0, pr.sx, pr.sy, radius)
-        grad.addColorStop(0, `rgba(${r},${g},${b},${0.07 * pr.s})`)
+        grad.addColorStop(0, `rgba(${r},${g},${b},${(0.07 * pr.s * pr.fade).toFixed(3)})`)
         grad.addColorStop(1, 'rgba(0,0,0,0)')
         ctx.fillStyle = grad
         ctx.fillRect(pr.sx - radius, pr.sy - radius, radius * 2, radius * 2)
@@ -145,7 +174,8 @@ const ShowcaseNebula = () => {
       edges.forEach(([a, b]) => {
         const pa = proj[a]
         const pb = proj[b]
-        const alpha = 0.16 * Math.min(pa.s, pb.s) ** 2
+        const alpha = Math.min(0.45, 0.16 * Math.min(pa.s, pb.s) ** 2) * pa.fade * pb.fade
+        if (alpha < 0.01) return
         ctx.strokeStyle = `rgba(154,160,173,${alpha.toFixed(3)})`
         ctx.lineWidth = 0.7
         ctx.beginPath()
@@ -154,14 +184,27 @@ const ShowcaseNebula = () => {
         ctx.stroke()
       })
 
-      nodes.forEach((n, i) => {
+      // far-to-near so nodes popping out draw over everything behind them
+      const byDepth = nodes
+        .map((_, i) => i)
+        .sort((a, b) => proj[b].depth - proj[a].depth)
+      byDepth.forEach((i) => {
+        const n = nodes[i]
         const pr = proj[i]
+        if (!pr.fade) return
         const [r, g, b] = n.color
         const tw = 0.75 + 0.25 * Math.sin(n.twinkle + p * 12)
-        const alpha = Math.min(1, (0.35 + 0.65 * pr.s ** 2) * tw)
+        const alpha = Math.min(1, (0.35 + 0.65 * Math.min(1.5, pr.s) ** 2) * tw) * pr.fade
+        const core = n.r * pr.s
+        // halo
+        const haloR = core * 6
+        ctx.globalAlpha = alpha * 0.7
+        ctx.drawImage(halos.get(n.color), pr.sx - haloR, pr.sy - haloR, haloR * 2, haloR * 2)
+        ctx.globalAlpha = 1
+        // core
         ctx.fillStyle = `rgba(${r},${g},${b},${alpha.toFixed(3)})`
         ctx.beginPath()
-        ctx.arc(pr.sx, pr.sy, n.r * pr.s, 0, Math.PI * 2)
+        ctx.arc(pr.sx, pr.sy, core, 0, Math.PI * 2)
         ctx.fill()
       })
     }
@@ -211,7 +254,7 @@ const ShowcaseNebula = () => {
 
         <div className="sc-title-box">
           <div className="sc-title gradient-text">nebula-md</div>
-          <p className="nb-tag">render your notes as an interactive galaxy</p>
+          <p className="sc-tag">render your notes as an interactive galaxy</p>
           <a
             className="sc-cta mono"
             href="https://nebula-md.j6n.dev/"

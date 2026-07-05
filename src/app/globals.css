@@ -727,7 +727,8 @@ body::before {
   width: 100%;
   height: 100%;
 }
-.nb-tag {
+/* showcase tagline (shared by nebula + kube-cats title boxes) */
+.sc-tag {
   margin: -0.4rem 0 0;
   font-size: clamp(0.9rem, 1.8vw, 1.1rem);
   color: var(--muted);
