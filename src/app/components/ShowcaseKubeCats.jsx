@@ -130,7 +130,7 @@ const ShowcaseKubeCats = () => {
           ))}
 
           <div className="sc-caption mono">
-            ✦ showcase 002 — kube-cats
+            ✦ showcase 003 — kube-cats
           </div>
 
           {nodes.map((n) => (

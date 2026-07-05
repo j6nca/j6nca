@@ -714,6 +714,28 @@ body::before {
 }
 
 /* ------------------------------------------------------------------ *
+ * Nebula showcase (canvas note-graph galaxy, camera orbits with scroll)
+ * ------------------------------------------------------------------ */
+.nb-stage {
+  background:
+    radial-gradient(70% 55% at 50% 45%, rgba(153, 102, 255, 0.09), transparent 70%),
+    radial-gradient(100% 80% at 50% 110%, rgba(5, 6, 10, 0.9), transparent);
+}
+.nb-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.nb-tag {
+  margin: -0.4rem 0 0;
+  font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+  color: var(--muted);
+  text-align: center;
+  padding-inline: 1.5rem;
+}
+
+/* ------------------------------------------------------------------ *
  * Keyboard showcase (scroll-driven 3D build, all math derives from --p)
  *   p 0.00–0.50  keycap rain (3 parallax layers)
  *   p 0.45–0.55  rain fades out, case pans in front-on (the case front wall)
