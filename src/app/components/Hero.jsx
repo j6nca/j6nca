@@ -15,6 +15,18 @@ const ASCII_NAME = `     ██╗ ██████╗ ███╗   ██�
 ██║ ╚████║╚██████╔╝
 ╚═╝  ╚═══╝ ╚═════╝`
 
+// Powerline-style prompt: cwd, git branch, k8s cluster, then the command.
+const Prompt = ({ cmd }) => (
+  <div className="term-cmd">
+    <span className="pl" aria-hidden="true">
+      <span className="pl-seg pl-dir">~/j6nca</span>
+      <span className="pl-seg pl-git">⎇ main</span>
+      <span className="pl-seg pl-k8s">⎈ homelab</span>
+    </span>
+    <span className="pl-cmd">{cmd}</span>
+  </div>
+)
+
 const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => {
   return (
     <section className="hero">
@@ -32,13 +44,10 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
               <span />
               <span />
               <span />
-              <span className="term-title mono">j6n@ca — ~</span>
             </div>
             <div className="term-body term-hero-body">
               <Reveal delay={120}>
-                <div className="term-cmd">
-                  <span className="prompt">$</span> whoami
-                </div>
+                <Prompt cmd="whoami" />
               </Reveal>
 
               <div className="term-hero-grid">
@@ -52,9 +61,9 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
 
                   <Reveal delay={280}>
                     <p className="term-line">
-                      <span className="ok">{label.toLowerCase()}</span>
+                      {label.toLowerCase()}
                       <span className="sep">/</span>
-                      <span className="highlight">maker-of-things</span>
+                      maker-of-things
                     </p>
                   </Reveal>
 
@@ -67,8 +76,8 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
                   </Reveal>
 
                   <Reveal delay={440}>
-                    <div className="term-cmd term-cmd-gap">
-                      <span className="prompt">$</span> ls ~/links
+                    <div className="term-cmd-gap">
+                      <Prompt cmd="ls ./links" />
                     </div>
                     <div className="term-links">
                       <a href="./resume" target="_blank" rel="noreferrer">resume/</a>

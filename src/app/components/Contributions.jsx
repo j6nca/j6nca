@@ -25,22 +25,12 @@ function monthLabels(weeks) {
   return labels
 }
 
-// Weighted toward dim cells so the scramble reads like matrix rain.
-const randomLevel = () => {
-  const r = Math.random()
-  if (r < 0.45) return 0
-  if (r < 0.7) return 1
-  if (r < 0.85) return 2
-  if (r < 0.95) return 3
-  return 4
-}
-
 const Contributions = ({ data }) => {
   const cardRef = useRef(null)
 
-  // Scroll-driven decode: while the card travels up the viewport the grid
-  // shows scrambled green "matrix" cells; past ~3/4 progress the card chrome
-  // fades in and cells sweep left-to-right into the real data.
+  // Scroll-driven decode: while the card travels up the viewport, matrix-style
+  // drops trickle down each column; past ~3/4 progress the card chrome fades
+  // in and cells sweep left-to-right into the real data.
   useEffect(() => {
     const card = cardRef.current
     if (!card) return
@@ -49,12 +39,20 @@ const Contributions = ({ data }) => {
     const cells = Array.from(card.querySelectorAll('.contrib-grid .contrib-day'))
     if (!cells.length) return
     const weekOf = cells.map((el) => Number(el.dataset.week))
+    const rowOf = cells.map((el) => Number(el.dataset.row))
     const realLvl = cells.map((el) => Number(el.dataset.lvl))
     const jitter = cells.map(() => Math.random())
     const totalWeeks = Math.max(1, ...weekOf) + 1
 
+    // One rain drop per column: a bright head with a fading 4-cell tail,
+    // falling at its own speed/phase and wrapping around.
+    const CYCLE = 16 // 7 rows + tail + dark gap before the drop re-enters
+    const colSpeed = Array.from({ length: totalWeeks }, () => 0.25 + Math.random() * 0.55)
+    const colPhase = Array.from({ length: totalWeeks }, () => Math.random() * CYCLE)
+
     let progress = 0
     let resolvedAll = false
+    let tick = 0
     let raf = 0
 
     const paint = () => {
@@ -66,7 +64,11 @@ const Contributions = ({ data }) => {
         if (threshold <= resolveFrac) {
           el.className = `contrib-day lvl-${realLvl[i]}`
         } else {
-          el.className = `contrib-day mx lvl-${randomLevel()}`
+          const w = weekOf[i]
+          const head = (colPhase[w] + tick * colSpeed[w]) % CYCLE
+          const d = head - rowOf[i]
+          const lvl = d >= 0 && d < 4 ? 4 - Math.floor(d) : 0
+          el.className = `contrib-day mx lvl-${lvl}`
         }
       })
       resolvedAll = resolveFrac >= 1
@@ -87,20 +89,20 @@ const Contributions = ({ data }) => {
       })
     }
 
-    // Reshuffle unresolved cells on a timer so the rain flickers even when
-    // the user pauses mid-scroll.
-    const shuffle = setInterval(() => {
+    // Advance the rain even when the user pauses mid-scroll.
+    const rain = setInterval(() => {
       if (resolvedAll) return
       const rect = card.getBoundingClientRect()
       if (rect.top > window.innerHeight + 200 || rect.bottom < -200) return
+      tick += 1
       paint()
-    }, 110)
+    }, 90)
 
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onScroll)
     return () => {
-      clearInterval(shuffle)
+      clearInterval(rain)
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onScroll)
       if (raf) cancelAnimationFrame(raf)
@@ -141,17 +143,21 @@ const Contributions = ({ data }) => {
                 <div className="contrib-grid">
                   {data.weeks.map((week, wi) => (
                     <div className="contrib-week" key={wi}>
-                      {week.days.map((day) => (
-                        <span
-                          key={day.date}
-                          className={`contrib-day lvl-${day.level}`}
-                          data-lvl={day.level}
-                          data-week={wi}
-                          style={{ gridRow: new Date(day.date + 'T00:00:00Z').getUTCDay() + 1 }}
-                          title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${day.date}`}
-                          aria-label={`${day.count} contributions on ${day.date}`}
-                        />
-                      ))}
+                      {week.days.map((day) => {
+                        const row = new Date(day.date + 'T00:00:00Z').getUTCDay()
+                        return (
+                          <span
+                            key={day.date}
+                            className={`contrib-day lvl-${day.level}`}
+                            data-lvl={day.level}
+                            data-week={wi}
+                            data-row={row}
+                            style={{ gridRow: row + 1 }}
+                            title={`${day.count} contribution${day.count === 1 ? '' : 's'} on ${day.date}`}
+                            aria-label={`${day.count} contributions on ${day.date}`}
+                          />
+                        )
+                      })}
                     </div>
                   ))}
                 </div>
