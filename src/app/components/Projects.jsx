@@ -1,6 +1,7 @@
 import React from 'react'
 import Reveal from './Reveal'
 import Contributions from './Contributions'
+import ShowcaseKeyboards from './ShowcaseKeyboards'
 import ShowcaseKubeCats from './ShowcaseKubeCats'
 import { formatRange } from '../lib/resume'
 
@@ -31,6 +32,7 @@ const Projects = ({ projects = [], contributions }) => {
         </Reveal>
       </div>
 
+      <ShowcaseKeyboards />
       <ShowcaseKubeCats />
 
       <div className="wrap">

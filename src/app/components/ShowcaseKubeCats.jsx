@@ -130,7 +130,7 @@ const ShowcaseKubeCats = () => {
           ))}
 
           <div className="sc-caption mono">
-            ✦ showcase 001 — $ kubectl get pods -o wide --watch
+            ✦ showcase 002 — kube-cats
           </div>
 
           {nodes.map((n) => (
