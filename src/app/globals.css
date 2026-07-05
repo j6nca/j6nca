@@ -368,15 +368,22 @@ body::before {
 @media (min-width: 900px) {
   .term-hero-grid { grid-template-columns: 1.35fr 0.65fr; }
 }
-.term-hero .term-art {
-  margin: 0 auto;
-  font-size: clamp(0.68rem, 1.3vw, 0.95rem);
+/* Scroll-scrubbed sprite-sheet animation (frames driven by AsciiScrub) */
+.term-scrub {
+  width: min(100%, 340px);
+  aspect-ratio: 420 / 421;
+  margin-inline: auto;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
 }
 
-/* whoami output: figlet-style name + plain terminal text */
+/* whoami output: figlet-style name + plain terminal text.
+   The vw-based size keeps the 70-char art inside narrow phones (~360px). */
 .term-name {
   margin: 0;
-  font-size: clamp(0.42rem, 1.15vw, 0.72rem);
+  font-size: clamp(0.3rem, 1.5vw, 0.72rem);
   line-height: 1.2;
   font-weight: 400;
   white-space: pre;
@@ -411,16 +418,6 @@ body::before {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.term-art {
-  margin: 0.5rem 0 0;
-  color: #87b7e1;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.74rem;
-  line-height: 1.05;
-  white-space: pre;
-  overflow-x: auto;
-}
-
 .scroll-hint {
   position: absolute;
   left: 50%;
@@ -688,7 +685,20 @@ body::before {
   background: rgba(8, 10, 16, 0.7);
 }
 
-.sc-pod { z-index: 1; }
+.sc-pod {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.sc-label-sm {
+  font-size: 0.55rem;
+  padding: 0.05rem 0.35rem;
+  color: var(--muted);
+  border-color: rgba(255, 255, 255, 0.06);
+}
 
 /* ------------------------------------------------------------------ *
  * Cards (projects / generic glass)

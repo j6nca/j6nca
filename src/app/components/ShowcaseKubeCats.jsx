@@ -83,8 +83,9 @@ const ShowcaseKubeCats = () => {
     const update = () => {
       raf = 0
       const rect = el.getBoundingClientRect()
-      const scrollable = rect.height - window.innerHeight
-      const p = Math.min(1, Math.max(0, -rect.top / Math.max(1, scrollable)))
+      // p=0 the moment the section enters the viewport bottom, p=1 when the
+      // sticky stage unpins — so the fleet is already moving as it scrolls in.
+      const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / Math.max(1, rect.height)))
       // Title fades in after the first quarter and out after the third.
       const fadeIn = (p - 0.25) / 0.12
       const fadeOut = (0.87 - p) / 0.12
@@ -166,6 +167,7 @@ const ShowcaseKubeCats = () => {
                 alt=""
                 style={{ width: `${p.size}px` }}
               />
+              <span className="sc-label sc-label-sm mono">{p.name}</span>
             </div>
           ))}
         </div>
