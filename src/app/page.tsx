@@ -17,8 +17,8 @@ export default async function Home() {
       <main className="shell">
         <Hero name={data.basics.name} label={data.basics.label} />
         <About />
-        <Experience work={data.work} />
         <Projects projects={data.projects} contributions={contributions} />
+        <Experience work={data.work} />
         <Skills skills={data.skills} />
         <Contact />
         <footer className="footer">

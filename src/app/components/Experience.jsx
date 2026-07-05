@@ -8,7 +8,7 @@ const Experience = ({ work = [] }) => {
     <section id="experience" className="section">
       <div className="wrap">
         <Reveal>
-          <span className="eyebrow">02 — Experience</span>
+          <span className="eyebrow">03 — Experience</span>
         </Reveal>
         <Reveal delay={80}>
           <h2 className="section-title">Where I&apos;ve shipped.</h2>

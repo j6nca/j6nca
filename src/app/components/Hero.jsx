@@ -11,69 +11,63 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
         <span className="blob c" />
       </div>
 
-      <div className="wrap hero-grid">
-        <div>
-          <Reveal>
-            <span className="eyebrow">~/j6n — whoami</span>
-          </Reveal>
-
-          <Reveal delay={80}>
-            <h1 className="hero-title">
-              <span className="gradient-text">{name}</span>
-            </h1>
-          </Reveal>
-
-          <Reveal delay={160}>
-            <p className="hero-sub">
-              {label}
-              <span className="sep">/</span>
-              <span className="highlight">maker-of-things</span>
-            </p>
-          </Reveal>
-
-          <Reveal delay={240}>
-            <p className="hero-lead">
-              I build and keep distributed systems healthy — observability,
-              internal platforms, and the automation that makes shipping calm.
-              Based in Toronto, deep into homelab, metrics, and custom keyboards.
-            </p>
-          </Reveal>
-
-          <Reveal delay={320}>
-            <div className="hero-cta">
-              <a className="btn btn-primary" href="./resume" target="_blank" rel="noreferrer">
-                View résumé →
-              </a>
-              <a className="btn btn-ghost" href="https://blog.j6n.ca">
-                Read the blog
-              </a>
-              <a className="btn btn-ghost" href="https://meow.j6n.dev">
-                Peek the homelab
-              </a>
-            </div>
-          </Reveal>
-        </div>
-
-        <Reveal variant="scale" delay={200}>
-          <div className="portrait-wrap">
-            <img
-              className="portrait"
-              src="./images/linkedin2.jpg"
-              alt="Jonathan Ng"
-            />
-          </div>
-
-          <div className="term" aria-hidden="true">
+      <div className="wrap">
+        <Reveal variant="scale">
+          <div className="term term-hero">
             <div className="term-bar">
               <span />
               <span />
               <span />
+              <span className="term-title mono">j6n@ca — ~</span>
             </div>
-            <div className="term-body">
-              <div>
-                <span className="prompt">$</span> motd
-              </div>
-              <pre className="term-art">{`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠠⣤⣐⣒⣒⣤⠤⢀⢠⢪⣿⣫⣮⡷⠤⣀⠀
+            <div className="term-body term-hero-body">
+              <Reveal delay={120}>
+                <div className="term-cmd">
+                  <span className="prompt">$</span> whoami
+                </div>
+              </Reveal>
+
+              <div className="term-hero-grid">
+                <div>
+                  <Reveal delay={200}>
+                    <h1 className="hero-title">
+                      <span className="gradient-text">{name}</span>
+                    </h1>
+                  </Reveal>
+
+                  <Reveal delay={280}>
+                    <p className="hero-sub">
+                      {label}
+                      <span className="sep">/</span>
+                      <span className="highlight">maker-of-things</span>
+                    </p>
+                  </Reveal>
+
+                  <Reveal delay={360}>
+                    <p className="hero-lead">
+                      I build and keep distributed systems healthy — observability,
+                      internal platforms, and the automation that makes shipping calm.
+                      Based in Toronto, deep into homelab, metrics, and custom keyboards.
+                    </p>
+                  </Reveal>
+
+                  <Reveal delay={440}>
+                    <div className="hero-cta">
+                      <a className="btn btn-primary" href="./resume" target="_blank" rel="noreferrer">
+                        View résumé →
+                      </a>
+                      <a className="btn btn-ghost" href="https://blog.j6n.ca">
+                        Read the blog
+                      </a>
+                      <a className="btn btn-ghost" href="https://meow.j6n.dev">
+                        Peek the homelab
+                      </a>
+                    </div>
+                  </Reveal>
+                </div>
+
+                <Reveal variant="right" delay={320}>
+                  <pre className="term-art" aria-hidden="true">{`⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠠⣤⣐⣒⣒⣤⠤⢀⢠⢪⣿⣫⣮⡷⠤⣀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⡠⢰⡵⠞⠋⠀⠀⠀⠑⠈⠛⢶⣭⣼⠉⢿⠃⠛⣽⢪⠃
 ⠀⠀⠀⠀⠀⠀⢠⢊⡾⠋⠀⠀⠀⠀⠀⠀⣴⡄⠀⠀⠈⢳⣤⡈⣿⣦⡿⡇⠀
 ⠀⠀⠀⠀⠀⢠⢣⡿⠀⣀⠀⠀⠀⠀⠀⠀⢀⣠⣴⠏⠀⠀⣿⢙⣿⡳⠈⠀⠀
@@ -85,6 +79,8 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
 ⠀⠀⠀⠀⠀⠀⠀⠀⠘⡏⣧⠢⡝⡄⠸⣷⣬⡷⢸⣏⠁⠀⢀⣠⡾⣳⠁⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠘⠼⡷⣶⣳⣦⣤⣠⡄⠛⠛⣿⢻⠯⠕⠊⠁⠀⠀⠀
 ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠉⠐⠺⢛⣶⣞⡫⠋⠀⠀⠀⠀⠀⠀`}</pre>
+                </Reveal>
+              </div>
             </div>
           </div>
         </Reveal>

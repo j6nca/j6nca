@@ -1,6 +1,7 @@
 import React from 'react'
 import Reveal from './Reveal'
 import Contributions from './Contributions'
+import ShowcaseKubeCats from './ShowcaseKubeCats'
 import { formatRange } from '../lib/resume'
 
 const hostOf = (url) => {
@@ -16,7 +17,7 @@ const Projects = ({ projects = [], contributions }) => {
     <section id="projects" className="section">
       <div className="wrap">
         <Reveal>
-          <span className="eyebrow">03 — Projects</span>
+          <span className="eyebrow">02 — Projects</span>
         </Reveal>
         <Reveal delay={80}>
           <h2 className="section-title">
@@ -28,7 +29,11 @@ const Projects = ({ projects = [], contributions }) => {
             Side projects, tools, and experiments — mostly born in the homelab.
           </p>
         </Reveal>
+      </div>
 
+      <ShowcaseKubeCats />
+
+      <div className="wrap">
         <div className="card-grid">
           {projects.map((p, i) => {
             const Tag = p.url ? 'a' : 'div'
