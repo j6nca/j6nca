@@ -12,14 +12,13 @@ const mulberry32 = (seed) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-// ISO 60% layout, key widths in units. Each row sums to 15u.
-// The ISO enter is emitted separately (it spans rows 2–3).
+// ANSI 60% layout: [legend, width in u]. Each row sums to 15u.
 const ROWS = [
-  [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2],
-  [1.5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1.75, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  [1.25, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2.75],
-  [1.25, 1.25, 1.25, 6.25, 1.25, 1.25, 1.25, 1.25],
+  [['esc', 1], ['1', 1], ['2', 1], ['3', 1], ['4', 1], ['5', 1], ['6', 1], ['7', 1], ['8', 1], ['9', 1], ['0', 1], ['-', 1], ['=', 1], ['⌫', 2]],
+  [['tab', 1.5], ['q', 1], ['w', 1], ['e', 1], ['r', 1], ['t', 1], ['y', 1], ['u', 1], ['i', 1], ['o', 1], ['p', 1], ['[', 1], [']', 1], ['\\', 1.5]],
+  [['caps', 1.75], ['a', 1], ['s', 1], ['d', 1], ['f', 1], ['g', 1], ['h', 1], ['j', 1], ['k', 1], ['l', 1], [';', 1], ["'", 1], ['enter', 2.25]],
+  [['shift', 2.25], ['z', 1], ['x', 1], ['c', 1], ['v', 1], ['b', 1], ['n', 1], ['m', 1], [',', 1], ['.', 1], ['/', 1], ['shift', 2.75]],
+  [['ctrl', 1.25], ['win', 1.25], ['alt', 1.25], ['', 6.25], ['alt', 1.25], ['fn', 1.25], ['menu', 1.25], ['ctrl', 1.25]],
 ]
 const COLS_PER_U = 4 // grid columns per key unit (60 columns total)
 
@@ -29,17 +28,15 @@ const RAIN_COUNT = 34
 const build = () => {
   const rand = mulberry32(0x6b62) // "kb"
 
-  // Board keys with grid placement; ISO enter appended last.
   const keys = []
   ROWS.forEach((row, r) => {
     let col = 1
-    row.forEach((w) => {
+    row.forEach(([legend, w]) => {
       const span = Math.round(w * COLS_PER_U)
-      keys.push({ row: r + 1, col, span })
+      keys.push({ legend, row: r + 1, col, span })
       col += span
     })
   })
-  keys.push({ row: 2, col: 55, span: 6, iso: true }) // ISO enter, rows 2–3
 
   // Random fill order: key i appears when --fill passes its --ki threshold.
   const order = keys.map((_, i) => i)
@@ -88,6 +85,7 @@ const ShowcaseKeyboards = () => {
       const lead = vh * 0.5
       const p = Math.min(1, Math.max(0, (vh + lead - rect.top) / Math.max(1, rect.height + lead)))
       el.style.setProperty('--p', p.toFixed(4))
+      el.classList.toggle('kb-done', p > 0.88)
     }
 
     const onScroll = () => {
@@ -106,12 +104,10 @@ const ShowcaseKeyboards = () => {
 
   return (
     <div className="showcase kb-showcase" ref={ref}>
-      <div className="showcase-stage kb-stage" aria-hidden="true">
-        <div className="sc-caption mono">
-          ✦ showcase 001 — keyboards
-        </div>
+      <div className="showcase-stage kb-stage">
+        <div className="sc-caption mono">✦ showcase 001 — keyboards</div>
 
-        <div className="kb-rain">
+        <div className="kb-rain" aria-hidden="true">
           {rain.map((k, i) => (
             <span
               key={i}
@@ -134,22 +130,28 @@ const ShowcaseKeyboards = () => {
         </div>
 
         <div className="kb-scene">
-          <div className="kb-board">
+          <div className="kb-board" aria-hidden="true">
             <div className="kb-keys">
               {keys.map((k, i) => (
                 <span
                   key={i}
-                  className={`kb-key${k.iso ? ' kb-enter' : ''}${i === 0 ? ' kb-esc' : ''}`}
+                  className={`kb-key${k.legend === 'enter' ? ' kb-accent-b' : ''}${k.legend === 'esc' ? ' kb-accent-a' : ''}`}
                   style={{
-                    gridRow: k.iso ? '2 / 4' : k.row,
+                    gridRow: k.row,
                     gridColumn: `${k.col} / span ${k.span}`,
                     '--ki': k.ki,
                   }}
-                />
+                >
+                  {k.legend}
+                </span>
               ))}
             </div>
           </div>
-          <div className="kb-plate mono">iso-60%</div>
+          <div className="kb-plate mono">
+            <a href="https://blog.j6n.ca/keyboards/index" target="_blank" rel="noreferrer">
+              view my keyboards <span className="card-arrow">↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>

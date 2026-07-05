@@ -716,9 +716,9 @@ body::before {
 /* ------------------------------------------------------------------ *
  * Keyboard showcase (scroll-driven 3D build, all math derives from --p)
  *   p 0.00–0.50  keycap rain (3 parallax layers)
- *   p 0.45–0.55  rain fades out, case pans in front-on
- *   p 0.52–0.92  case tilts 78° → 0° while keys fill the ISO layout
- *   p 0.92–1.00  aerial shot, nameplate fades in
+ *   p 0.45–0.55  rain fades out, case pans in front-on (the case front wall)
+ *   p 0.52–0.92  case tilts 78° → 0° while keys fill the ANSI layout
+ *   p 0.92–1.00  aerial shot, "view my keyboards" link fades in
  * ------------------------------------------------------------------ */
 .kb-showcase { height: 380vh; }
 
@@ -740,10 +740,14 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--muted);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--glass-border);
+  color: rgba(231, 233, 238, 0.7);
+  background: linear-gradient(180deg, #343947 0%, #262a35 55%, #191c26 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 18%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 2px rgba(0, 0, 0, 0.55),
+    0 6px 8px -3px rgba(0, 0, 0, 0.6);
   transform:
     translate3d(0, calc((var(--y0) + var(--p, 0) * var(--spd)) * 1vh), 0)
     rotate(calc(var(--p, 0) * var(--rot) * 1deg));
@@ -763,14 +767,16 @@ body::before {
 }
 .kb-board {
   --t: clamp(0, calc((var(--p, 0) - 0.52) / 0.4), 1);
+  position: relative;
   width: min(92vw, 640px);
   padding: clamp(0.5rem, 1.5vw, 0.9rem);
-  border-radius: 14px;
-  background: linear-gradient(180deg, #14161d, #0b0d13);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, #171a22, #0d0f15);
   border: 1px solid var(--glass-border-hover);
+  border-bottom: none;
   box-shadow:
-    0 40px 80px -30px rgba(0, 0, 0, 0.8),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 60px 90px -30px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
   opacity: clamp(0, calc((var(--p, 0) - 0.45) * 10), 1);
   transform:
     rotateX(calc(78deg - var(--t) * 78deg))
@@ -778,40 +784,88 @@ body::before {
   transform-style: preserve-3d;
   will-change: transform, opacity;
 }
+/* case front wall: hinged off the bottom edge, perpendicular to the deck —
+   it IS the "rectangle" you see in the front-on shot, and goes edge-on in
+   the final aerial view */
+.kb-board::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: clamp(14px, 2.5vw, 22px);
+  background: linear-gradient(180deg, #191c25, #07080c);
+  border: 1px solid var(--glass-border);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg);
+}
 .kb-keys {
   --fill: clamp(0, calc((var(--p, 0) - 0.55) / 0.32), 1);
   display: grid;
   grid-template-columns: repeat(60, 1fr);
   grid-template-rows: repeat(5, 1fr);
   gap: clamp(2px, 0.5vw, 4px);
+  padding: clamp(2px, 0.5vw, 4px);
   aspect-ratio: 15 / 5;
+  border-radius: 8px;
+  /* exposed plate the keycaps sit on */
+  background: #05060a;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.8);
   transform-style: preserve-3d;
 }
 .kb-key {
   --k: clamp(0, calc((var(--fill) - var(--ki, 0)) * 5), 1);
+  display: flex;
+  align-items: flex-start;
+  padding: 7% 0 0 9%;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(5px, 1.05vw, 10px);
+  line-height: 1;
+  color: rgba(231, 233, 238, 0.72);
   border-radius: clamp(2px, 0.6vw, 5px);
-  background: linear-gradient(180deg, #2a2e3a, #1b1e28);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  /* sculpted cap: bright top edge, deep skirt at the bottom */
+  background: linear-gradient(180deg, #343947 0%, #262a35 55%, #191c26 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -4px 2px rgba(0, 0, 0, 0.55),
+    0 5px 4px -2px rgba(0, 0, 0, 0.65);
   opacity: var(--k);
-  transform: translateZ(calc((1 - var(--k)) * 60px));
+  /* rests 8px proud of the plate; drops in from 68px above */
+  transform: translateZ(calc((1 - var(--k)) * 60px + 8px));
 }
-.kb-esc {
-  background: linear-gradient(180deg, var(--accent), #6fd13f);
+.kb-accent-a {
+  background: linear-gradient(180deg, #b5ff8f 0%, var(--accent) 55%, #5faf35 100%);
   border-color: rgba(153, 255, 102, 0.5);
+  color: #12300a;
 }
-.kb-enter {
-  background: linear-gradient(180deg, var(--accent-violet), #6f3fd1);
+.kb-accent-b {
+  background: linear-gradient(180deg, #b499ff 0%, var(--accent-violet) 55%, #5c35af 100%);
   border-color: rgba(153, 102, 255, 0.5);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 16.7% 100%, 16.7% 50%, 0 50%);
+  color: #190a33;
 }
 .kb-plate {
-  font-size: 0.8rem;
-  letter-spacing: 0.25em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 0.85rem;
   opacity: clamp(0, calc((var(--p, 0) - 0.9) * 12), 1);
 }
+.kb-plate a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: none; /* only clickable once faded in */
+}
+.kb-showcase.kb-done .kb-plate a { pointer-events: auto; }
+.kb-plate a:hover,
+.kb-plate a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.kb-plate a:hover .card-arrow { transform: translate(3px, -3px); }
 
 /* ------------------------------------------------------------------ *
  * Cards (projects / generic glass)
@@ -1086,4 +1140,5 @@ body::before {
   .sc-title-box { pointer-events: auto !important; }
   /* keyboards: freeze on the finished aerial shot */
   .kb-showcase { --p: 0.98 !important; }
+  .kb-plate a { pointer-events: auto !important; }
 }
