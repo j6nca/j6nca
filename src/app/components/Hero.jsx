@@ -30,7 +30,8 @@ const Prompt = ({ cmd }) => (
 
 const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => {
   return (
-    <section className="hero">
+    <div className="hero-pin">
+      <section className="hero">
       {/* animated gradient mesh backdrop */}
       <div className="mesh" aria-hidden="true">
         <span className="blob a" />
@@ -98,7 +99,8 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
         <span className="mouse" />
         scroll
       </div>
-    </section>
+      </section>
+    </div>
   )
 }
 

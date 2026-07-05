@@ -236,6 +236,19 @@ body::before {
   overflow: hidden;
 }
 
+/* Pin the hero for the first ~85vh of scroll so the ascii art animates in
+   place before the page moves on. Desktop only — on small screens the
+   stacked TUI can be taller than the viewport and would get clipped. */
+@media (min-width: 900px) {
+  .hero-pin { height: 185vh; }
+  .hero {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    min-height: 0;
+  }
+}
+
 /* Shared lead/CTA styles (used by About and Contact) */
 .hero-lead {
   margin-top: 1.4rem;
@@ -962,6 +975,9 @@ body::before {
   .reveal { opacity: 1 !important; transform: none !important; transition: none; }
   .blob, .eyebrow::before, .scroll-hint .mouse::after { animation: none; }
   .progress-bar { display: none; }
+
+  /* No hero pin — scrolling should move the page immediately. */
+  .hero-pin { height: auto !important; }
 
   /* Freeze the showcase mid-scene: no scroll-driven travel, title visible. */
   .showcase { height: auto !important; --p: 0.5 !important; --title-o: 1 !important; }

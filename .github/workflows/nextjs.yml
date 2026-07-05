@@ -86,10 +86,12 @@ jobs:
         run: ${{ steps.detect-package-manager.outputs.manager }} ${{ steps.detect-package-manager.outputs.command }}
       # Refresh the GitHub contribution snapshot baked into the static export.
       # Non-fatal: a transient API failure falls back to the committed snapshot.
+      # The calendar is public data, so any valid token works: prefer the
+      # GH_TOKEN secret, fall back to the workflow's built-in token.
       - name: Refresh contribution snapshot
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.METRICS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN || github.token }}
         run: node scripts/fetch-contributions.mjs
       # On the daily run, persist the refreshed snapshot back to main. The
       # `updated` date changes every day, so there is always a diff to commit —

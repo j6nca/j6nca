@@ -83,9 +83,12 @@ const ShowcaseKubeCats = () => {
     const update = () => {
       raf = 0
       const rect = el.getBoundingClientRect()
-      // p=0 the moment the section enters the viewport bottom, p=1 when the
-      // sticky stage unpins — so the fleet is already moving as it scrolls in.
-      const p = Math.min(1, Math.max(0, (window.innerHeight - rect.top) / Math.max(1, rect.height)))
+      // p starts ramping half a viewport before the section enters the
+      // viewport bottom (so the fleet is already mid-flight when first seen)
+      // and reaches 1 when the sticky stage unpins.
+      const vh = window.innerHeight
+      const lead = vh * 0.5
+      const p = Math.min(1, Math.max(0, (vh + lead - rect.top) / Math.max(1, rect.height + lead)))
       // Title fades in after the first quarter and out after the third.
       const fadeIn = (p - 0.25) / 0.12
       const fadeOut = (0.87 - p) / 0.12
