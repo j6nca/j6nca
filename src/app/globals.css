@@ -236,19 +236,6 @@ body::before {
   overflow: hidden;
 }
 
-/* Pin the hero for the first ~130vh of scroll so the ascii art animates in
-   place before the page moves on. Desktop only — on small screens the
-   stacked TUI can be taller than the viewport and would get clipped. */
-@media (min-width: 900px) {
-  .hero-pin { height: 230vh; }
-  .hero {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 0;
-  }
-}
-
 /* Shared lead/CTA styles (used by About and Contact) */
 .hero-lead {
   margin-top: 1.4rem;
@@ -383,16 +370,34 @@ body::before {
 @media (min-width: 900px) {
   .term-hero-grid { grid-template-columns: 1.35fr 0.65fr; }
 }
-/* Scroll-scrubbed sprite-sheet animation (frames driven by AsciiScrub) */
-.term-scrub {
+/* Looping sprite-sheet animation (14-frame vertical strip, see AsciiLoop).
+   1.12s matches the source gif (28 frames @ 40ms; the sprite keeps every 2nd
+   frame). jump-none lands on each of the 14 frames exactly once per cycle. */
+.term-loop {
   width: min(100%, 340px);
   aspect-ratio: 420 / 462;
   margin-inline: auto;
   background-repeat: no-repeat;
   background-position: 0 0;
+  animation: ascii-frames 1.12s steps(14, jump-none) infinite;
   /* circular vignette: dissolve the dead black corners of the frames */
   -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 99%);
   mask-image: radial-gradient(closest-side, #000 72%, transparent 99%);
+}
+
+@keyframes ascii-frames {
+  from {
+    background-position-y: 0%;
+  }
+  to {
+    background-position-y: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .term-loop {
+    animation: none;
+  }
 }
 
 /* whoami output: figlet-style name + plain terminal text.
@@ -1161,9 +1166,6 @@ body::before {
   .reveal { opacity: 1 !important; transform: none !important; transition: none; }
   .blob, .eyebrow::before, .scroll-hint .mouse::after { animation: none; }
   .progress-bar { display: none; }
-
-  /* No hero pin — scrolling should move the page immediately. */
-  .hero-pin { height: auto !important; }
 
   /* Freeze the showcase mid-scene: no scroll-driven travel, title visible. */
   .showcase { height: auto !important; --p: 0.5 !important; --title-o: 1 !important; }
