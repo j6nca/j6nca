@@ -5,10 +5,14 @@ import React, { useEffect, useRef } from 'react'
 // Frame count of public/images/ascii-sprite.webp (vertical strip, generated
 // from public/images/ascii.gif — every 2nd frame at 420px wide).
 const FRAMES = 14
+// Viewport-heights of scroll per full animation loop. One loop every ~60vh:
+// the animation cycles ~2× while the hero is pinned, and keeps looping on
+// pages/screens where the hero scrolls normally.
+const CYCLE_VH = 0.6
+const SPRITE = './images/ascii-sprite.webp'
 
-// Scroll-scrubbed animation: the sprite sheet's frames map onto the first
-// ~80vh of page scroll, so the art animates as you scroll away from the hero
-// (and plays backwards on the way up).
+// Scroll-scrubbed animation: frames advance with page scroll and wrap
+// around, playing backwards when scrolling up.
 const AsciiScrub = () => {
   const ref = useRef(null)
 
@@ -20,8 +24,8 @@ const AsciiScrub = () => {
 
     const update = () => {
       raf = 0
-      const p = Math.min(1, Math.max(0, window.scrollY / (window.innerHeight * 0.8)))
-      const frame = Math.round(p * (FRAMES - 1))
+      const frame =
+        Math.floor((window.scrollY / (window.innerHeight * CYCLE_VH)) * FRAMES) % FRAMES
       el.style.backgroundPositionY = `${((frame / (FRAMES - 1)) * 100).toFixed(3)}%`
     }
 
@@ -43,10 +47,23 @@ const AsciiScrub = () => {
       ref={ref}
       aria-hidden="true"
       style={{
-        backgroundImage: 'url(./images/ascii-sprite.webp)',
+        backgroundImage: `url(${SPRITE})`,
         backgroundSize: `100% ${FRAMES * 100}%`,
       }}
-    />
+    >
+      {/* eager-fetch the sprite so the first frame is painted before any
+          scrolling happens (background-image alone loads too lazily on
+          mobile) */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={SPRITE}
+        alt=""
+        loading="eager"
+        fetchPriority="high"
+        decoding="async"
+        style={{ position: 'absolute', width: 0, height: 0, opacity: 0 }}
+      />
+    </div>
   )
 }
 

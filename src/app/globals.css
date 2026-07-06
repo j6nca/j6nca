@@ -236,11 +236,11 @@ body::before {
   overflow: hidden;
 }
 
-/* Pin the hero for the first ~85vh of scroll so the ascii art animates in
+/* Pin the hero for the first ~130vh of scroll so the ascii art animates in
    place before the page moves on. Desktop only — on small screens the
    stacked TUI can be taller than the viewport and would get clipped. */
 @media (min-width: 900px) {
-  .hero-pin { height: 185vh; }
+  .hero-pin { height: 230vh; }
   .hero {
     position: sticky;
     top: 0;
@@ -357,7 +357,9 @@ body::before {
   padding-left: 1.2rem;
 }
 .pl-dir {
-  background: rgba(255, 255, 255, 0.12);
+  /* opaque so its chevron reads over the next segment (a translucent
+     background just tints the segment underneath instead) */
+  background: #2b303c;
   color: var(--text);
   z-index: 3;
 }
@@ -393,9 +395,14 @@ body::before {
 }
 
 /* whoami output: figlet-style name + plain terminal text.
-   The vw-based size keeps the 70-char art inside narrow phones (~360px). */
+   The vw-based size keeps the 70-char art inside narrow phones (~360px).
+   The explicit font stack matters: a bare <pre> falls back to the browser's
+   default monospace, which on Android draws the box glyphs from a different
+   face and misaligns the columns. */
 .term-name {
   margin: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-ligatures: none;
   font-size: clamp(0.3rem, 1.5vw, 0.72rem);
   line-height: 1.2;
   font-weight: 400;
