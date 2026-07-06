@@ -43,7 +43,7 @@ const buildGraph = () => {
       x: c.x + gauss() * c.spread * 2,
       y: c.y + gauss() * c.spread,
       z: c.z + gauss() * c.spread * 2,
-      r: hub ? 3.2 : 1 + rand() * 1.6,
+      r: hub ? 9.5 : 3 + rand() * 5,
       color: hub ? GREEN : tint < 0.14 ? GREEN : tint < 0.28 ? PURPLE : WHITE,
       twinkle: rand() * Math.PI * 2,
     }
@@ -157,9 +157,9 @@ const ShowcaseNebula = () => {
       const cosT = Math.cos(theta)
       const sinX = Math.sin(TILT)
       const cosX = Math.cos(TILT)
-      // Camera sits inside the cloud: notes constantly swing past the lens
-      // and pop out of the screen before fading as they cross it.
-      const unit = Math.min(width, height) * 1.86
+      // Camera sits close to the cloud: near notes swing past the lens and
+      // pop out of the screen before fading as they cross it.
+      const unit = Math.min(width, height) * 0.62
       const cx = width / 2
       const cy = height / 2
       const F = 1.7 // perspective distance (small = aggressive pop)
@@ -182,7 +182,9 @@ const ShowcaseNebula = () => {
         let x = (st.x * width - theta * st.par * width) % width
         if (x < 0) x += width
         ctx.fillStyle = `rgba(255,255,255,${st.a})`
-        ctx.fillRect(x, st.y * height, st.r, st.r)
+        ctx.beginPath()
+        ctx.arc(x, st.y * height, st.r, 0, Math.PI * 2)
+        ctx.fill()
       })
 
       // cloudy haze layer, drifting with the star parallax and gently bobbing
@@ -237,7 +239,7 @@ const ShowcaseNebula = () => {
         const alpha = Math.min(1, (0.35 + 0.65 * Math.min(1.5, pr.s) ** 2) * tw) * pr.fade
         const core = n.r * pr.s
         // halo
-        const haloR = core * 6
+        const haloR = core * 4.5
         ctx.globalAlpha = alpha * 0.7
         ctx.drawImage(halos.get(n.color), pr.sx - haloR, pr.sy - haloR, haloR * 2, haloR * 2)
         ctx.globalAlpha = 1
