@@ -386,12 +386,13 @@ body::before {
 /* Scroll-scrubbed sprite-sheet animation (frames driven by AsciiScrub) */
 .term-scrub {
   width: min(100%, 340px);
-  aspect-ratio: 420 / 421;
+  aspect-ratio: 420 / 462;
   margin-inline: auto;
   background-repeat: no-repeat;
   background-position: 0 0;
-  border-radius: 12px;
-  border: 1px solid var(--glass-border);
+  /* circular vignette: dissolve the dead black corners of the frames */
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 99%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 99%);
 }
 
 /* whoami output: figlet-style name + plain terminal text.
