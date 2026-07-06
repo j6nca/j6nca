@@ -738,9 +738,10 @@ body::before {
 
 /* ------------------------------------------------------------------ *
  * Keyboard showcase (scroll-driven 3D build, all math derives from --p)
- *   p 0.00–0.50  keycap rain (3 parallax layers)
- *   p 0.45–0.55  rain fades out, case pans in front-on (the case front wall)
+ *   p 0.00–0.92  keycap rain (3 parallax layers, keeps falling behind the board)
+ *   p 0.45–0.55  case pans in front-on (the case front wall)
  *   p 0.52–0.92  case tilts 78° → 0° while keys fill the ANSI layout
+ *   p 0.88–0.96  rain fades out as the board reaches aerial
  *   p 0.92–1.00  aerial shot, "view my keyboards" link fades in
  * ------------------------------------------------------------------ */
 .kb-showcase { height: 380vh; }
@@ -755,7 +756,7 @@ body::before {
 .kb-rain {
   position: absolute;
   inset: 0;
-  opacity: clamp(0, calc((0.55 - var(--p, 0)) * 12), 1);
+  opacity: clamp(0, calc((0.94 - var(--p, 0)) * 15), 1);
 }
 .kb-drop {
   position: absolute;

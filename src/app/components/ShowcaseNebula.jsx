@@ -71,12 +71,24 @@ const buildGraph = () => {
       x: rand(),
       y: rand(),
       a: [0.1, 0.2, 0.35][layer] + rand() * 0.15,
-      r: [0.6, 1, 1.5][layer],
+      r: [1.2, 2, 3][layer],
       par: [0.015, 0.04, 0.08][layer],
     }
   })
 
-  return { nodes, edges, centers, stars }
+  // cloudy haze blobs: large, dim, slowly drifting against the orbit
+  const hazes = Array.from({ length: 7 }, (_, i) => ({
+    x: rand(),
+    y: 0.15 + rand() * 0.7,
+    w: 0.35 + rand() * 0.4, // width as a fraction of the viewport
+    squash: 0.45 + rand() * 0.25, // clouds are wider than tall
+    color: i % 3 === 0 ? PURPLE : i % 3 === 1 ? GREEN : WHITE,
+    par: 0.02 + rand() * 0.05,
+    alpha: 0.05 + rand() * 0.05,
+    phase: rand() * Math.PI * 2,
+  }))
+
+  return { nodes, edges, centers, stars, hazes }
 }
 
 const ShowcaseNebula = () => {
@@ -90,7 +102,7 @@ const ShowcaseNebula = () => {
     if (!el || !canvas) return
     const ctx = canvas.getContext('2d')
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const { nodes, edges, centers, stars } = graph
+    const { nodes, edges, centers, stars, hazes } = graph
     let raf = 0
     let width = 0
     let height = 0
@@ -112,6 +124,23 @@ const ShowcaseNebula = () => {
       [GREEN, PURPLE, WHITE].map((color) => [color, makeHalo(color)])
     )
 
+    // Softer, larger sprite for the haze clouds.
+    const makeHaze = ([r, g, b]) => {
+      const c = document.createElement('canvas')
+      c.width = c.height = 256
+      const g2 = c.getContext('2d')
+      const grad = g2.createRadialGradient(128, 128, 0, 128, 128, 128)
+      grad.addColorStop(0, `rgba(${r},${g},${b},0.28)`)
+      grad.addColorStop(0.5, `rgba(${r},${g},${b},0.1)`)
+      grad.addColorStop(1, 'rgba(0,0,0,0)')
+      g2.fillStyle = grad
+      g2.fillRect(0, 0, 256, 256)
+      return c
+    }
+    const hazeSprites = new Map(
+      [GREEN, PURPLE, WHITE].map((color) => [color, makeHaze(color)])
+    )
+
     const resize = () => {
       const dpr = Math.min(2, window.devicePixelRatio || 1)
       width = canvas.clientWidth
@@ -128,9 +157,9 @@ const ShowcaseNebula = () => {
       const cosT = Math.cos(theta)
       const sinX = Math.sin(TILT)
       const cosX = Math.cos(TILT)
-      // Camera sits close to the cloud: near notes swing past the lens and
-      // pop out of the screen before fading as they cross it.
-      const unit = Math.min(width, height) * 0.62
+      // Camera sits inside the cloud: notes constantly swing past the lens
+      // and pop out of the screen before fading as they cross it.
+      const unit = Math.min(width, height) * 1.86
       const cx = width / 2
       const cy = height / 2
       const F = 1.7 // perspective distance (small = aggressive pop)
@@ -154,6 +183,17 @@ const ShowcaseNebula = () => {
         if (x < 0) x += width
         ctx.fillStyle = `rgba(255,255,255,${st.a})`
         ctx.fillRect(x, st.y * height, st.r, st.r)
+      })
+
+      // cloudy haze layer, drifting with the star parallax and gently bobbing
+      hazes.forEach((h) => {
+        const w = h.w * width
+        const span = width + w
+        let x = ((h.x * span - theta * h.par * width) % span + span) % span - w / 2
+        const y = h.y * height + Math.sin(theta * 2 + h.phase) * height * 0.02
+        ctx.globalAlpha = h.alpha
+        ctx.drawImage(hazeSprites.get(h.color), x - w / 2, y - (w * h.squash) / 2, w, w * h.squash)
+        ctx.globalAlpha = 1
       })
 
       // nebula glow around the three largest clusters
