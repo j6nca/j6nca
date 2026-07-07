@@ -759,10 +759,18 @@ body::before {
  * ------------------------------------------------------------------ */
 .kb-showcase { height: 380vh; }
 
-.kb-stage {
+/* glow lives on a pseudo-element so it can be masked out near the stage
+   edges — otherwise the off-center radials clip hard at the sticky boundary */
+.kb-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background:
     radial-gradient(90% 70% at 50% 110%, rgba(153, 102, 255, 0.16), transparent 70%),
     radial-gradient(80% 60% at 50% -10%, rgba(153, 255, 102, 0.09), transparent 70%);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
 }
 
 /* keycap rain */
