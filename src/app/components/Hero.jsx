@@ -1,20 +1,7 @@
 import React from 'react'
 import Reveal from './Reveal'
 import AsciiLoop from './AsciiLoop'
-
-const ASCII_NAME = `     ██╗ ██████╗ ███╗   ██╗ █████╗ ████████╗██╗  ██╗ █████╗ ███╗   ██╗
-     ██║██╔═══██╗████╗  ██║██╔══██╗╚══██╔══╝██║  ██║██╔══██╗████╗  ██║
-     ██║██║   ██║██╔██╗ ██║███████║   ██║   ███████║███████║██╔██╗ ██║
-██   ██║██║   ██║██║╚██╗██║██╔══██║   ██║   ██╔══██║██╔══██║██║╚██╗██║
-╚█████╔╝╚██████╔╝██║ ╚████║██║  ██║   ██║   ██║  ██║██║  ██║██║ ╚████║
- ╚════╝  ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝
-
-███╗   ██╗ ██████╗
-████╗  ██║██╔════╝
-██╔██╗ ██║██║  ███╗
-██║╚██╗██║██║   ██║
-██║ ╚████║╚██████╔╝
-╚═╝  ╚═══╝ ╚═════╝`
+import AsciiName from './AsciiName'
 
 // Powerline-style prompt: cwd, git branch, k8s cluster, then the command.
 const Prompt = ({ cmd }) => (
@@ -55,9 +42,7 @@ const Hero = ({ name = 'Jonathan Ng', label = 'Site Reliability Engineer' }) => 
                 <div>
                   <Reveal delay={200}>
                     <h1 className="sr-only">{name}</h1>
-                    <pre className="term-name gradient-text" aria-hidden="true">
-                      {ASCII_NAME}
-                    </pre>
+                    <AsciiName />
                   </Reveal>
 
                   <Reveal delay={280}>

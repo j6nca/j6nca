@@ -25,6 +25,15 @@ const COLS_PER_U = 4 // grid columns per key unit (60 columns total)
 const RAIN_GLYPHS = 'qwertyasdfghzxcv⇧⌘⌥⎋↵⌫'
 const RAIN_COUNT = 34
 
+// Once the board has assembled (--fill done at p≈0.87), these keys "type"
+// in sequence — the word, then enter to finish. Each lights up as --p
+// crosses its --kt threshold. The last threshold must stay far enough under
+// the reduced-motion freeze point (--p: 0.98) for every key to be fully lit
+// in the frozen scene.
+const TYPE_SEQ = [...'keyboards', 'enter']
+const TYPE_START = 0.875
+const TYPE_STEP = 0.01
+
 const build = () => {
   const rand = mulberry32(0x6b62) // "kb"
 
@@ -46,6 +55,11 @@ const build = () => {
   }
   order.forEach((keyIdx, pos) => {
     keys[keyIdx].ki = (0.8 * pos) / keys.length
+  })
+
+  TYPE_SEQ.forEach((legend, n) => {
+    const key = keys.find((k) => k.legend === legend)
+    if (key) key.kt = TYPE_START + n * TYPE_STEP
   })
 
   // Falling keycaps, three parallax layers (far → near).
@@ -135,11 +149,12 @@ const ShowcaseKeyboards = () => {
               {keys.map((k, i) => (
                 <span
                   key={i}
-                  className={`kb-key${k.legend === 'enter' ? ' kb-accent-b' : ''}${k.legend === 'esc' ? ' kb-accent-a' : ''}`}
+                  className={`kb-key${k.kt != null ? ' kb-type' : ''}${k.kt != null && k.legend === 'enter' ? ' kb-type-enter' : ''}`}
                   style={{
                     gridRow: k.row,
                     gridColumn: `${k.col} / span ${k.span}`,
                     '--ki': k.ki,
+                    '--kt': k.kt,
                   }}
                 >
                   {k.legend}

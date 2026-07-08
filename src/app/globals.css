@@ -68,6 +68,9 @@ body::before {
 
 .wrap {
   width: 100%;
+  /* min-width 0: as a flex item (.hero) the auto minimum would otherwise
+     grow to the hero art's intrinsic width and overflow narrow viewports */
+  min-width: 0;
   max-width: var(--maxw);
   margin-inline: auto;
   padding-inline: clamp(1.25rem, 5vw, 3rem);
@@ -124,12 +127,8 @@ body::before {
   margin-top: 0.9rem;
 }
 
-.gradient-text {
-  background: linear-gradient(100deg, #fff 0%, var(--accent-cyan) 45%, var(--accent-violet) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+.accent-text {
+  color: var(--accent);
 }
 
 .mono {
@@ -360,15 +359,17 @@ body::before {
   color: #190a33;
   z-index: 1;
 }
+/* minmax(0, …) tracks: without it the full-size figlet pre sets the track's
+   auto minimum and blows the grid past the viewport on narrow screens */
 .term-hero-grid {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
   gap: clamp(1.5rem, 4vw, 3.5rem);
   align-items: center;
   margin-top: clamp(1.2rem, 3vh, 2rem);
 }
 @media (min-width: 900px) {
-  .term-hero-grid { grid-template-columns: 1.35fr 0.65fr; }
+  .term-hero-grid { grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr); }
 }
 /* Looping sprite-sheet animation (14-frame vertical strip, see AsciiLoop).
    1.12s matches the source gif (28 frames @ 40ms; the sprite keeps every 2nd
@@ -401,19 +402,32 @@ body::before {
 }
 
 /* whoami output: figlet-style name + plain terminal text.
-   The vw-based size keeps the 70-char art inside narrow phones (~360px).
+   The art renders at a fixed size and AsciiName scales it with a transform to
+   fit the container — shrinking via font-size warps the columns on mobile
+   (per-glyph advance rounding at ~5px sizes).
    The explicit font stack matters: a bare <pre> falls back to the browser's
    default monospace, which on Android draws the box glyphs from a different
    face and misaligns the columns. */
+.term-name-box {
+  overflow: hidden;
+}
 .term-name {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-ligatures: none;
-  font-size: clamp(0.3rem, 1.5vw, 0.72rem);
+  font-size: 0.72rem;
   line-height: 1.2;
   font-weight: 400;
   white-space: pre;
-  overflow-x: auto;
+  width: max-content;
+  transform-origin: top left;
+  color: var(--accent);
+}
+.term-name .shade-1 {
+  color: #7fd94f;
+}
+.term-name .shade-2 {
+  color: #5faf35;
 }
 .term-line {
   margin-top: 1.4rem;
@@ -882,15 +896,33 @@ body::before {
   /* rests 8px proud of the plate; drops in from 68px above */
   transform: translateZ(calc((1 - var(--k)) * 60px + 8px));
 }
-.kb-accent-a {
-  background: linear-gradient(180deg, #b5ff8f 0%, var(--accent) 55%, #5faf35 100%);
-  border-color: rgba(153, 255, 102, 0.5);
-  color: #12300a;
+/* Typing keys: each lights up as --p crosses its --kt threshold (staying
+   lit), with a momentary expand/contract pulse like a keypress. --kb-press
+   rises to 1 at the threshold then falls back to 0 shortly after. */
+.kb-type {
+  --lit-hi: #b5ff8f;
+  --lit-mid: var(--accent);
+  --lit-lo: #5faf35;
+  --lit-border: rgba(153, 255, 102, 0.5);
+  --lit-text: #12300a;
+  --lit: clamp(0, calc((var(--p, 0) - var(--kt, 1)) * 90), 1);
+  --kb-press: calc(var(--lit) - clamp(0, calc((var(--p, 0) - var(--kt, 1) - 0.012) * 90), 1));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lit-hi) calc(var(--lit) * 100%), #343947) 0%,
+    color-mix(in srgb, var(--lit-mid) calc(var(--lit) * 100%), #262a35) 55%,
+    color-mix(in srgb, var(--lit-lo) calc(var(--lit) * 100%), #191c26) 100%
+  );
+  border-color: color-mix(in srgb, var(--lit-border) calc(var(--lit) * 100%), rgba(255, 255, 255, 0.1));
+  color: color-mix(in srgb, var(--lit-text) calc(var(--lit) * 100%), rgba(231, 233, 238, 0.72));
+  transform: translateZ(calc((1 - var(--k)) * 60px + 8px)) scale(calc(1 + var(--kb-press) * 0.15));
 }
-.kb-accent-b {
-  background: linear-gradient(180deg, #b499ff 0%, var(--accent-violet) 55%, #5c35af 100%);
-  border-color: rgba(153, 102, 255, 0.5);
-  color: #190a33;
+.kb-type-enter {
+  --lit-hi: #b499ff;
+  --lit-mid: var(--accent-violet);
+  --lit-lo: #5c35af;
+  --lit-border: rgba(153, 102, 255, 0.5);
+  --lit-text: #190a33;
 }
 .kb-plate {
   font-size: 0.85rem;
@@ -1180,7 +1212,8 @@ body::before {
   .showcase-stage { position: relative; height: 100svh; }
   .sc-sprite img { animation: none; }
   .sc-title-box { pointer-events: auto !important; }
-  /* keyboards: freeze on the finished aerial shot */
+  /* keyboards: freeze on the finished aerial shot, no key mid-press */
   .kb-showcase { --p: 0.98 !important; }
+  .kb-showcase .kb-type { --kb-press: 0; }
   .kb-plate a { pointer-events: auto !important; }
 }

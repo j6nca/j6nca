@@ -23,7 +23,7 @@ const Projects = ({ projects = [], contributions }) => {
         </Reveal>
         <Reveal delay={80}>
           <h2 className="section-title">
-            Things I&apos;ve <span className="gradient-text">built</span>.
+            Things I&apos;ve <span className="accent-text">built</span>.
           </h2>
         </Reveal>
         <Reveal delay={140}>

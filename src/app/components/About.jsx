@@ -12,7 +12,7 @@ const About = () => {
         </Reveal>
         <Reveal delay={80}>
           <h2 className="section-title">
-            DevOps engineer &amp; <span className="gradient-text">maker-of-things</span>.
+            DevOps engineer &amp; <span className="accent-text">maker-of-things</span>.
           </h2>
         </Reveal>
         <Reveal delay={140}>

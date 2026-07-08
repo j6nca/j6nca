@@ -176,7 +176,7 @@ const ShowcaseKubeCats = () => {
         </div>
 
         <div className="sc-title-box">
-          <div className="sc-title gradient-text">kube-cats</div>
+          <div className="sc-title accent-text">kube-cats</div>
           <p className="sc-tag">visualizing your k8s workloads as cats</p>
           <a
             className="sc-cta mono"

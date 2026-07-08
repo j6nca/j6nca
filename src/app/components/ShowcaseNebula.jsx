@@ -295,7 +295,7 @@ const ShowcaseNebula = () => {
         <div className="sc-caption mono">✦ showcase 002 — nebula-md</div>
 
         <div className="sc-title-box">
-          <div className="sc-title gradient-text">nebula-md</div>
+          <div className="sc-title accent-text">nebula-md</div>
           <p className="sc-tag">render your notes as an interactive galaxy</p>
           <a
             className="sc-cta mono"

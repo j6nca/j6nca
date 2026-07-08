@@ -11,7 +11,7 @@ const Contact = () => {
         </Reveal>
         <Reveal delay={80}>
           <h2 className="section-title">
-            Let&apos;s <span className="gradient-text">build something</span>.
+            Let&apos;s <span className="accent-text">build something</span>.
           </h2>
         </Reveal>
         <Reveal delay={140}>
