@@ -180,6 +180,22 @@
   ],
   "projects": [
     {
+      "name": "GetBud",
+      "startDate": "2026-07-01",
+      "endDate": "present",
+      "description": "A budgeting app, import/track/visualize spending with ease",
+      "highlights": [],
+      "url": "https://ctrl-research.github.io/getbud"
+    },
+    {
+      "name": "Waypoint",
+      "startDate": "2026-07-01",
+      "endDate": "present",
+      "description": "A collaborative travel companion, plan/live/remember your trips",
+      "highlights": [],
+      "url": "https://ctrl-research.github.io/waypoint"
+    },
+    {
       "name": "Medieval-ution",
       "startDate": "2026-06-01",
       "endDate": "present",
