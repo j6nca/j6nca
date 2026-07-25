@@ -141,6 +141,16 @@ const LaptopScene = ({ data, contributions }) => {
     let touchY = null
     let touchDone = false
 
+    // Custom-property writes invalidate style for the whole subtree, so only
+    // touch a var when its value actually changed — at any given moment a
+    // beat tween moves one or two of them, not all ten.
+    const varCache = {}
+    const setVar = (el, name, val) => {
+      if (varCache[name] === val) return
+      varCache[name] = val
+      el.style.setProperty(name, val)
+    }
+
     const applyCam = (c) => {
       world.style.transform = `translate3d(${c.tx.toFixed(1)}px, ${c.ty.toFixed(1)}px, 0) scale3d(${c.s.toFixed(4)}, ${c.s.toFixed(4)}, ${c.s.toFixed(4)})`
       rig.style.transform = `rotateX(${c.rx.toFixed(2)}deg) rotateY(${c.ry.toFixed(2)}deg)`
@@ -150,14 +160,14 @@ const LaptopScene = ({ data, contributions }) => {
       const b = [0]
       for (let i = 1; i <= BANDS; i++) {
         b[i] = clamp(r - (i - 1))
-        root.style.setProperty(`--b${i}`, b[i].toFixed(4))
+        setVar(root, `--b${i}`, b[i].toFixed(4))
       }
       // top progress bar (the CSS scroll-timeline can't see beat progress)
-      document.documentElement.style.setProperty('--scene-p', (r / BANDS).toFixed(4))
+      setVar(document.documentElement, '--scene-p', (r / BANDS).toFixed(4))
 
       // lid opens through the first half of beat 1 (closed -90° → open +8°)
       const lid = smooth(seg(b[1], 0.05, 0.55))
-      root.style.setProperty('--lid', `${(-90 + lid * 98).toFixed(2)}deg`)
+      setVar(root, '--lid', `${(-90 + lid * 98).toFixed(2)}deg`)
 
       // app strip: 0 terminal · 1 obsidian · 2 browser
       const app =
@@ -165,7 +175,7 @@ const LaptopScene = ({ data, contributions }) => {
         smooth(seg(b[4], 0, 0.26)) +
         2 * smooth(seg(b[7], 0.02, 0.3)) -
         2 * smooth(seg(b[8], 0, 0.26))
-      root.style.setProperty('--app', app.toFixed(4))
+      setVar(root, '--app', app.toFixed(4))
 
       // camera
       let c = P.desk
@@ -204,11 +214,11 @@ const LaptopScene = ({ data, contributions }) => {
       const u = Math.min(1, (now - animStart) / RESET_MS)
       const e = easeBeat(u)
       applyCam(mixPose(P.screen, P.desk, e))
-      root.style.setProperty('--lid', `${(-90 + (1 - e) * 98).toFixed(2)}deg`)
+      setVar(root, '--lid', `${(-90 + (1 - e) * 98).toFixed(2)}deg`)
       // --b1 gates the panel-boot overlay + intro title: screen goes dark
       // (and the title fades back in) over the first stretch of the close
-      root.style.setProperty('--b1', (1 - seg(u, 0, 0.4)).toFixed(4))
-      document.documentElement.style.setProperty('--scene-p', (1 - e).toFixed(4))
+      setVar(root, '--b1', (1 - seg(u, 0, 0.4)).toFixed(4))
+      setVar(document.documentElement, '--scene-p', (1 - e).toFixed(4))
       if (u < 1) {
         raf = requestAnimationFrame(resetTick)
       } else {
