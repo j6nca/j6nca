@@ -82,17 +82,17 @@ body:has(.lp-scroll) {
  * ------------------------------------------------------------------ */
 .lp-desk {
   position: absolute;
-  left: -1300px;
-  top: -850px;
-  width: 2600px;
-  height: 1700px;
+  left: -1100px;
+  top: -700px;
+  width: 2200px;
+  height: 1400px;
   transform: translateY(16px) rotateX(90deg);
+  will-change: transform;
   background:
     radial-gradient(60% 45% at 50% 60%, rgba(255, 195, 120, 0.12), transparent 70%),
     repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 215px),
     repeating-linear-gradient(88deg, rgba(255, 222, 170, 0.05) 0 14px, rgba(70, 45, 18, 0.07) 14px 34px, transparent 34px 52px),
     linear-gradient(90deg, #63462a 0%, #8a6236 28%, #7c5730 52%, #8f6a3c 76%, #63462a 100%);
-  box-shadow: inset 0 0 240px 60px rgba(0, 0, 0, 0.4);
   /* dissolve into the dark room instead of ending at a hard edge */
   -webkit-mask-image: radial-gradient(70% 62% at 50% 52%, #000 52%, transparent 86%);
   mask-image: radial-gradient(70% 62% at 50% 52%, #000 52%, transparent 86%);
@@ -101,8 +101,8 @@ body:has(.lp-scroll) {
 /* soft contact shadow under the machine (lives in the desk plane) */
 .lp-shadow {
   position: absolute;
-  left: 790px;
-  top: 760px;
+  left: 590px;
+  top: 610px;
   width: 1020px;
   height: 720px;
   background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.6), transparent 68%);
@@ -126,6 +126,7 @@ body:has(.lp-scroll) {
   transform-origin: 50% 0;
   transform: rotateX(90deg);
   transform-style: preserve-3d;
+  will-change: transform;
   /* small radius: the edge walls are straight planes, so a big rounding
      opens a desk-coloured wedge at each corner */
   border-radius: 10px;
@@ -210,7 +211,9 @@ body:has(.lp-scroll) {
   width: 840px;
   height: 560px;
   transform-origin: 50% 100%;
-  transform: rotateX(var(--lid, -90deg));
+  /* the local -Z lift floats the closed lid ~6px above the deck (reads as
+     the clamshell's thickness) — coplanar planes z-fight on mobile GPUs */
+  transform: rotateX(var(--lid, -90deg)) translateZ(-6px);
   transform-style: preserve-3d;
   will-change: transform;
 }
@@ -224,13 +227,15 @@ body:has(.lp-scroll) {
 }
 
 .lp-lid-front {
+  /* slight separation between the two faces — same z-fight guard */
+  transform: translateZ(0.6px);
   background: linear-gradient(180deg, #171b24, #10131b);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .lp-lid-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(0.6px);
   background:
     radial-gradient(80% 90% at 50% 20%, rgba(255, 255, 255, 0.05), transparent 60%),
     linear-gradient(160deg, #2b303c 0%, #171b24 70%);
@@ -809,6 +814,14 @@ body:has(.lp-scroll) {
   .lp-app { font-size: 15px; }
   .lp-pre { font-size: 13.5px; }
   .lp-page { padding: 14px 16px; }
+  /* lighter compositing load for phone GPUs: half the cat fleet and a
+     desk without the repeating grain layers */
+  .lp-cat:nth-of-type(2n) { display: none; }
+  .lp-desk {
+    background:
+      radial-gradient(60% 45% at 50% 60%, rgba(255, 195, 120, 0.12), transparent 70%),
+      linear-gradient(90deg, #63462a 0%, #8a6236 28%, #7c5730 52%, #8f6a3c 76%, #63462a 100%);
+  }
 }
 
 /* ------------------------------------------------------------------ *
