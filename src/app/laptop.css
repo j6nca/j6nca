@@ -31,10 +31,13 @@ body:has(.lp-scroll) {
   perspective-origin: 50% 54%;
 }
 
-/* beat progress drives the top bar (there is no document scroll to time it) */
+/* beat progress drives the top bar (there is no document scroll to time it).
+   Both !important: globals.css sets a scroll-timeline animation and a base
+   scaleX(0), and dev-mode HMR can reorder style tags — this must win either
+   way round. */
 .progress-bar {
   animation: none !important;
-  transform: scaleX(var(--scene-p, 0));
+  transform: scaleX(var(--scene-p, 0)) !important;
 }
 
 /* dark room + warm desk-lamp pool */

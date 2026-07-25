@@ -383,9 +383,7 @@ const LaptopScene = ({ data, contributions }) => {
           scroll
         </div>
 
-        <div className="lp-foot mono">
-          © {data.basics.name} · built with Next.js · curl j6n.ca/resume.json
-        </div>
+        <div className="lp-foot mono">© {data.basics.name}</div>
       </div>
     </section>
   )
