@@ -86,11 +86,11 @@ const BrowserApp = ({ data, subscribe }) => {
         })
         return
       }
-      visible = bands[7] > 0.02 && bands[8] < 0.6
+      visible = bands[9] > 0.02 && bands[10] < 0.6
       // start the sweep once the swipe-in has mostly landed
-      if (bands[7] >= 0.3 && !started) started = performance.now()
+      if (bands[9] >= 0.3 && !started) started = performance.now()
       // scrolled back out of the beat: reset so a revisit replays the decode
-      if (bands[7] < 0.05 && started) {
+      if (bands[9] < 0.05 && started) {
         started = 0
         resolvedAll = false
         paint()

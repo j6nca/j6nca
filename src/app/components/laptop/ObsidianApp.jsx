@@ -223,7 +223,7 @@ const ObsidianApp = ({ subscribe }) => {
         draw(0.35)
         return
       }
-      vis = bands[3] > 0.3 && bands[4] < 0.3
+      vis = bands[5] > 0.3 && bands[6] < 0.3
     })
     return () => {
       cancelAnimationFrame(raf)

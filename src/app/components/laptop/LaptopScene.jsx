@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useRef } from 'react'
 import LaptopKeyboard from './LaptopKeyboard'
 import TerminalApp from './TerminalApp'
+import WaypointApp from './WaypointApp'
+import GetbudApp from './GetbudApp'
 import ObsidianApp from './ObsidianApp'
 import BrowserApp from './BrowserApp'
 
@@ -15,17 +17,23 @@ import BrowserApp from './BrowserApp'
  * three poses (desk → screen → keyboard → screen) and slides the on-screen
  * app strip (terminal / obsidian / browser).
  *
- *   beat 1  lid opens, whoami + about types into the terminal
- *   beat 2  camera dives to the keyboard, k-e-y-b-o-a-r-d-s ↵ types itself
- *   beat 3  back to the screen, swipe to obsidian, the note-galaxy spins
- *   beat 4  swipe back, kubectl get po, kube-cats fly across the terminal
- *   beat 5  cat ~/projects.md
- *   beat 6  cat ~/work_experience.md
- *   beat 7  swipe to the browser, contribution graph decodes
- *   beat 8  swipe back, motd — contact, resume, curl
+ *   beat 1   lid opens, whoami + about types into the terminal
+ *   beat 2   camera dives to the keyboard, k-e-y-b-o-a-r-d-s ↵ types itself
+ *   beat 3   back to the screen, swipe to waypoint — the japan trip replays
+ *   beat 4   swipe to getbud — the cash-flow sankey sweeps in
+ *   beat 5   swipe to obsidian, the note-galaxy spins
+ *   beat 6   swipe back, kubectl get po, kube-cats fly across the terminal
+ *   beat 7   cat ~/projects.md
+ *   beat 8   cat ~/work_experience.md
+ *   beat 9   swipe to the browser, contribution graph decodes
+ *   beat 10  swipe back, motd — contact, resume, curl
+ *
+ * The screen's app strip is ordered [contrib, terminal, waypoint, getbud,
+ * obsidian] so every transition except the two returns-to-terminal is a
+ * single-screen swipe; --app is the strip index (terminal = 1).
  */
 
-const BANDS = 8
+const BANDS = 10
 const SCREEN_W = 800
 const SCREEN_H = 500
 const LID_H = 560
@@ -35,12 +43,14 @@ const LAP_W = 840
 const CAPTIONS = [
   '01 — hello',
   '02 — keyboards',
-  '03 — nebula.md',
-  '04 — kube-cats',
-  '05 — projects',
-  '06 — experience',
-  '07 — commits',
-  '08 — contact',
+  '03 — waypoint',
+  '04 — getbud',
+  '05 — nebula.md',
+  '06 — kube-cats',
+  '07 — projects',
+  '08 — experience',
+  '09 — commits',
+  '10 — contact',
 ]
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
@@ -169,12 +179,15 @@ const LaptopScene = ({ data, contributions }) => {
       const lid = smooth(seg(b[1], 0.05, 0.55))
       setVar(root, '--lid', `${(-90 + lid * 98).toFixed(2)}deg`)
 
-      // app strip: 0 terminal · 1 obsidian · 2 browser
+      // app strip index: 0 contrib · 1 terminal · 2 waypoint · 3 getbud · 4 obsidian
       const app =
-        smooth(seg(b[3], 0.32, 0.6)) -
-        smooth(seg(b[4], 0, 0.26)) +
-        2 * smooth(seg(b[7], 0.02, 0.3)) -
-        2 * smooth(seg(b[8], 0, 0.26))
+        1 +
+        smooth(seg(b[3], 0.32, 0.6)) + // → waypoint
+        smooth(seg(b[4], 0.02, 0.3)) + // → getbud
+        smooth(seg(b[5], 0.02, 0.3)) - // → obsidian
+        3 * smooth(seg(b[6], 0, 0.26)) - // whoosh back to the terminal
+        smooth(seg(b[9], 0.02, 0.3)) + // → contribution browser
+        smooth(seg(b[10], 0, 0.26)) // back for motd
       setVar(root, '--app', app.toFixed(4))
 
       // camera
@@ -340,14 +353,16 @@ const LaptopScene = ({ data, contributions }) => {
                   <div className="lp-lid-front">
                     <div className="lp-screen">
                       <div className="lp-apps">
+                        <BrowserApp data={contributions} subscribe={subscribe} />
                         <TerminalApp
                           basics={data.basics}
                           projects={data.projects}
                           work={data.work}
                           subscribe={subscribe}
                         />
+                        <WaypointApp />
+                        <GetbudApp />
                         <ObsidianApp subscribe={subscribe} />
-                        <BrowserApp data={contributions} subscribe={subscribe} />
                       </div>
                     </div>
                     <div className="lp-chin" aria-hidden="true">j6n</div>

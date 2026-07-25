@@ -20,11 +20,11 @@ const mulberry32 = (seed) => () => {
 // is underway; the swaps at 2.8 and 6.5 happen while another app covers the
 // screen entirely.
 const PAGE_RANGES = [
-  [0, 2.8], // whoami + about
-  [2.8, 4.12], // kubectl get po (+ cats)
-  [4.12, 5.12], // cat ~/projects.md
-  [5.12, 6.5], // cat ~/work_experience.md
-  [6.5, 99], // motd
+  [0, 4.8], // whoami + about
+  [4.8, 6.12], // kubectl get po (+ cats)
+  [6.12, 7.12], // cat ~/projects.md
+  [7.12, 8.5], // cat ~/work_experience.md
+  [8.5, 99], // motd
 ]
 
 const Prompt = ({ children }) => (
@@ -186,8 +186,8 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
           </L>
         </div>
 
-        {/* page 1 — kubectl get po + kube-cats (beat 4) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b4, 0)' }}>
+        {/* page 1 — kubectl get po + kube-cats (beat 6) */}
+        <div className="lp-page" style={{ '--bv': 'var(--b6, 0)' }}>
           <Prompt>
             <Typed text="kubectl get po" from={0.28} to={0.52} />
           </Prompt>
@@ -248,8 +248,8 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
           </div>
         </div>
 
-        {/* page 2 — cat ~/projects.md (beat 5) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b5, 0)' }}>
+        {/* page 2 — cat ~/projects.md (beat 7) */}
+        <div className="lp-page" style={{ '--bv': 'var(--b7, 0)' }}>
           <Prompt>
             <Typed text="cat ~/projects.md" from={0.18} to={0.42} />
           </Prompt>
@@ -275,8 +275,8 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
           })}
         </div>
 
-        {/* page 3 — cat ~/work_experience.md (beat 6) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b6, 0)' }}>
+        {/* page 3 — cat ~/work_experience.md (beat 8) */}
+        <div className="lp-page" style={{ '--bv': 'var(--b8, 0)' }}>
           <Prompt>
             <Typed text="cat ~/work_experience.md" from={0.18} to={0.46} />
           </Prompt>
@@ -307,8 +307,8 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
           </L>
         </div>
 
-        {/* page 4 — motd (beat 8) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b8, 0)' }}>
+        {/* page 4 — motd (beat 10) */}
+        <div className="lp-page" style={{ '--bv': 'var(--b10, 0)' }}>
           <Prompt>
             <Typed text="motd" from={0.3} to={0.42} />
           </Prompt>
