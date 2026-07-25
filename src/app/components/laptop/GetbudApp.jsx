@@ -8,14 +8,14 @@ import React from 'react'
  */
 
 const FLOWS = [
-  { label: 'rent', amt: 1850, c: 'w' },
-  { label: 'groceries', amt: 520, c: 'w' },
-  { label: 'dining', amt: 380, c: 'w' },
-  { label: 'transit', amt: 160, c: 'w' },
-  { label: 'rrsp', amt: 600, c: 'v' },
-  { label: 'tfsa', amt: 500, c: 'v' },
-  { label: 'keyboards', amt: 290, c: 'g' },
-  { label: 'misc', amt: 900, c: 'f' },
+  { label: 'rent', amt: 3700, c: 'w' },
+  { label: 'groceries', amt: 1040, c: 'w' },
+  { label: 'dining', amt: 760, c: 'w' },
+  { label: 'transit', amt: 320, c: 'w' },
+  { label: 'rrsp', amt: 1200, c: 'v' },
+  { label: 'tfsa', amt: 1000, c: 'v' },
+  { label: 'keyboards', amt: 588, c: 'g' },
+  { label: 'misc', amt: 2280, c: 'f' },
 ]
 const INCOME = FLOWS.reduce((sum, f) => sum + f.amt, 0)
 
@@ -58,7 +58,9 @@ const GetbudApp = () => (
       <span className="lp-dots" aria-hidden="true">
         <i /><i /><i />
       </span>
-      <span className="lp-apptitle">getbud — reports · cash flow · this month</span>
+      <span className="br-url" aria-hidden="true">
+        <span className="lp-faint">https://</span>budget.j6n.dev
+      </span>
     </div>
 
     <div className="gb-body" aria-hidden="true">
