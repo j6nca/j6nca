@@ -1,9 +1,4 @@
-import Hero from './components/Hero'
-import About from './components/About'
-import Experience from './components/Experience'
-import Projects from './components/Projects'
-import Skills from './components/Skills'
-import Contact from './components/Contact'
+import LaptopScene from './components/laptop/LaptopScene'
 import { getResume } from './lib/resume'
 import { getContributions } from './lib/contributions'
 
@@ -15,15 +10,7 @@ export default async function Home() {
     <>
       <div className="progress-bar" aria-hidden="true" />
       <main className="shell">
-        <Hero name={data.basics.name} label={data.basics.label} />
-        <About />
-        <Projects projects={data.projects} contributions={contributions} />
-        <Experience work={data.work} />
-        <Skills skills={data.skills} />
-        <Contact />
-        <footer className="footer">
-          © {data.basics.name} · built with Next.js · curl j6n.ca/resume.json
-        </footer>
+        <LaptopScene data={data} contributions={contributions} />
       </main>
     </>
   )

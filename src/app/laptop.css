@@ -1,0 +1,914 @@
+/* ==================================================================== *
+ * Laptop scene — the whole landing page as one scroll-driven CSS-3D set.
+ *
+ * LaptopScene.jsx publishes per-beat progress as --b1..--b8 (each 0→1,
+ * staying at 1 once passed) plus --lid (hinge angle) and --app (which app
+ * the screen shows: 0 terminal · 1 obsidian · 2 browser). Everything below
+ * derives from those vars; the camera itself (world translate/scale + rig
+ * rotate) is written inline by JS.
+ * ==================================================================== */
+
+/* the page doesn't scroll natively — stop pull-to-refresh / rubber-banding
+   from eating the swipe gestures that drive the beats */
+body:has(.lp-scroll) {
+  overscroll-behavior: none;
+}
+
+.lp-scroll {
+  position: relative;
+  z-index: 1;
+  /* beats advance on scroll *intent* (wheel/swipe/keys), not scroll position,
+     so the page is exactly one viewport tall */
+  height: 100svh;
+  overflow: hidden;
+}
+
+.lp-stage {
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  perspective: 2400px;
+  perspective-origin: 50% 54%;
+}
+
+/* beat progress drives the top bar (there is no document scroll to time it) */
+.progress-bar {
+  animation: none !important;
+  transform: scaleX(var(--scene-p, 0));
+}
+
+/* dark room + warm desk-lamp pool */
+.lp-room {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(55% 34% at 50% 76%, rgba(255, 166, 87, 0.07), transparent 70%),
+    radial-gradient(130% 100% at 50% -10%, #10141d 0%, #05060a 60%);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * 3D rig
+ * ------------------------------------------------------------------ */
+.lp-anchor {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+}
+
+.lp-world,
+.lp-rig {
+  position: absolute;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------------ *
+ * Desk (maple)
+ * ------------------------------------------------------------------ */
+.lp-desk {
+  position: absolute;
+  left: -1300px;
+  top: -850px;
+  width: 2600px;
+  height: 1700px;
+  transform: translateY(16px) rotateX(90deg);
+  background:
+    radial-gradient(60% 45% at 50% 60%, rgba(255, 195, 120, 0.12), transparent 70%),
+    repeating-linear-gradient(92deg, rgba(0, 0, 0, 0.12) 0 3px, transparent 3px 215px),
+    repeating-linear-gradient(88deg, rgba(255, 222, 170, 0.05) 0 14px, rgba(70, 45, 18, 0.07) 14px 34px, transparent 34px 52px),
+    linear-gradient(90deg, #63462a 0%, #8a6236 28%, #7c5730 52%, #8f6a3c 76%, #63462a 100%);
+  box-shadow: inset 0 0 240px 60px rgba(0, 0, 0, 0.4);
+  /* dissolve into the dark room instead of ending at a hard edge */
+  -webkit-mask-image: radial-gradient(70% 62% at 50% 52%, #000 52%, transparent 86%);
+  mask-image: radial-gradient(70% 62% at 50% 52%, #000 52%, transparent 86%);
+}
+
+/* soft contact shadow under the machine (lives in the desk plane) */
+.lp-shadow {
+  position: absolute;
+  left: 790px;
+  top: 760px;
+  width: 1020px;
+  height: 720px;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.6), transparent 68%);
+}
+
+/* ------------------------------------------------------------------ *
+ * Laptop
+ * ------------------------------------------------------------------ */
+.lp-laptop {
+  position: absolute;
+  transform-style: preserve-3d;
+}
+
+/* base: hinged at the anchor, folded down toward the viewer */
+.lp-base {
+  position: absolute;
+  left: -420px;
+  top: 0;
+  width: 840px;
+  height: 560px;
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  transform-style: preserve-3d;
+  /* small radius: the edge walls are straight planes, so a big rounding
+     opens a desk-coloured wedge at each corner */
+  border-radius: 10px;
+  background: linear-gradient(180deg, #262b36 0%, #1b1f29 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* front wall of the base, hinged off its leading edge */
+.lp-base::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  top: 100%;
+  height: 18px;
+  background: linear-gradient(180deg, #1d212b, #0a0c12);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg);
+}
+
+/* back wall (behind the hinge) */
+.lp-base::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  right: -10px;
+  bottom: 100%;
+  height: 18px;
+  background: linear-gradient(0deg, #1d212b, #0d0f15);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  transform-origin: 50% 100%;
+  transform: rotateX(90deg);
+}
+
+/* side walls, folded down from the deck's left/right edges — together with
+   the front/back walls they give the zero-thickness planes a solid slab
+   silhouette from the desk and keyboard poses */
+.lp-wall {
+  position: absolute;
+  /* run past both corners so the walls overlap where they meet */
+  top: -10px;
+  bottom: -10px;
+  width: 18px;
+  background: linear-gradient(180deg, #1d212b, #0a0c12);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.lp-wall-l {
+  left: 0;
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+}
+.lp-wall-r {
+  right: 0;
+  transform-origin: 100% 50%;
+  transform: rotateY(-90deg);
+}
+
+.lp-deck {
+  position: absolute;
+  inset: 0;
+  padding: 30px 40px 0;
+}
+
+.lp-trackpad {
+  width: 250px;
+  height: 160px;
+  margin: 26px auto 0;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: linear-gradient(180deg, #21252f, #1c202a);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* lid: hinged at the anchor; --lid runs -90° (closed) → +8° (open) */
+.lp-lid {
+  position: absolute;
+  left: -420px;
+  top: -560px;
+  width: 840px;
+  height: 560px;
+  transform-origin: 50% 100%;
+  transform: rotateX(var(--lid, -90deg));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.lp-lid-front,
+.lp-lid-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px;
+  backface-visibility: hidden;
+}
+
+.lp-lid-front {
+  background: linear-gradient(180deg, #171b24, #10131b);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.lp-lid-back {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(80% 90% at 50% 20%, rgba(255, 255, 255, 0.05), transparent 60%),
+    linear-gradient(160deg, #2b303c 0%, #171b24 70%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lp-logo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 26px;
+  letter-spacing: 0.08em;
+  color: rgba(153, 255, 102, 0.55);
+  text-shadow: 0 0 18px rgba(153, 255, 102, 0.35);
+  /* readable when the closed lid is viewed from the front */
+  transform: rotate(180deg);
+}
+
+.lp-chin {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: 0;
+  height: 38px;
+  line-height: 38px;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.22);
+}
+
+/* ------------------------------------------------------------------ *
+ * Screen + app strip
+ * ------------------------------------------------------------------ */
+.lp-screen {
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  width: 800px;
+  height: 500px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #05060a;
+}
+
+/* panel "boots" as the lid passes half-open */
+.lp-screen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  background: #000;
+  opacity: clamp(0, calc(1 - (var(--b1, 0) - 0.42) * 5), 1);
+  pointer-events: none;
+}
+
+.lp-apps {
+  position: absolute;
+  inset: 0;
+  width: 300%;
+  display: flex;
+  transform: translateX(calc(var(--app, 0) * -33.3333%));
+  will-change: transform;
+}
+
+.lp-app {
+  position: relative;
+  flex: none;
+  width: 800px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.lp-app a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+.lp-app a:hover,
+.lp-app a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lp-appbar {
+  flex: none;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.lp-dots {
+  display: flex;
+  gap: 7px;
+}
+.lp-dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+.lp-dots i:nth-child(1) { background: #ff5f57; }
+.lp-dots i:nth-child(2) { background: #febc2e; }
+.lp-dots i:nth-child(3) { background: #28c840; }
+
+.lp-apptitle {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+.lp-appbody {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ *
+ * Terminal scrollback pages
+ * ------------------------------------------------------------------ */
+.lp-page {
+  position: absolute;
+  inset: 0;
+  padding: 16px 22px;
+  overflow: hidden;
+  line-height: 1.55;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6%);
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s,
+    transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lp-page.on {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+}
+.lp-page.past {
+  transform: translateY(-7%);
+}
+
+.lp-prompt {
+  font-size: 13px;
+}
+
+/* command text revealed on glyph boundaries as --bv crosses --tf → --tt */
+.lp-typed {
+  --k: clamp(0, calc((var(--bv, 0) - var(--tf, 0)) / (var(--tt, 1) - var(--tf, 0))), 1);
+  display: inline-block;
+  overflow: hidden;
+  white-space: pre;
+  vertical-align: bottom;
+  width: calc(var(--k) * var(--len, 0) * 1ch);
+  color: var(--text);
+}
+
+.lp-caret {
+  display: inline-block;
+  width: 0.6ch;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--accent);
+  animation: lp-blink 1.1s steps(1) infinite;
+}
+@keyframes lp-blink {
+  50% { opacity: 0; }
+}
+
+/* one output line, appearing once --bv crosses --at */
+.lp-line {
+  margin-top: 0.35rem;
+  opacity: clamp(0, calc((var(--bv, 0) - var(--at, 0)) * 22), 1);
+}
+
+.lp-pre {
+  white-space: pre;
+  font-size: 12px;
+}
+.lp-indent { padding-left: 3ch; }
+.lp-ascii { margin-top: 0.9rem; }
+.lp-para {
+  max-width: 66ch;
+  line-height: 1.7;
+  margin-top: 0.55rem;
+}
+.lp-linkrow {
+  display: flex;
+  gap: 2rem;
+  margin-top: 0.7rem;
+}
+.lp-tags { letter-spacing: 0.05em; margin-top: 0.7rem; }
+.lp-dim { color: var(--muted); }
+.lp-faint { color: var(--faint); }
+.lp-accent { color: var(--accent); }
+.lp-sep { color: var(--faint); margin: 0 0.35rem; }
+.lp-dollar { color: var(--accent-violet); }
+.lp-manlabel {
+  margin-top: 0.8rem;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+.lp-cta-line { margin-top: 1.1rem; }
+.lp-motd-head { color: var(--text); }
+
+/* kube-cats flying through the terminal during beat 4. The fleet runs on
+   its own clock (2–3.2s per sprite, staggered) once the beat is on stage;
+   leaving and re-entering the beat resets and replays the flight. */
+.lp-cats {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.lp-cat {
+  position: absolute;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transform: translate3d(calc(var(--sx) * 1px), 0, 0);
+  will-change: transform;
+}
+.lp-scroll[data-beat="4"] .lp-cat {
+  /* infinite: each sprite exits stage right and respawns off-screen left */
+  animation: lp-fly var(--dur, 2.5s) linear var(--delay, 0s) infinite;
+}
+@keyframes lp-fly {
+  to {
+    transform: translate3d(calc((var(--sx) + var(--dx)) * 1px), 0, 0);
+  }
+}
+.lp-cat img {
+  display: block;
+  image-rendering: pixelated;
+  animation: sc-bob var(--bob-dur, 4s) ease-in-out var(--bob-delay, 0s) infinite alternate;
+}
+.lp-ufo {
+  z-index: 4;
+}
+.lp-ufo img {
+  width: 54px;
+  filter: drop-shadow(0 0 14px rgba(153, 255, 102, 0.35));
+}
+.lp-cat-label {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  color: var(--accent-cyan);
+  padding: 1px 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  background: rgba(8, 10, 16, 0.75);
+}
+
+/* ------------------------------------------------------------------ *
+ * Obsidian-style graph view
+ * ------------------------------------------------------------------ */
+.ob-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.ob-side {
+  flex: none;
+  width: 172px;
+  padding: 14px;
+  font-size: 11.5px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+}
+.ob-side-head {
+  margin-bottom: 0.7rem;
+  color: var(--accent-violet);
+  letter-spacing: 0.06em;
+}
+.ob-side ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.ob-side li::before {
+  content: "▸ ";
+  color: var(--faint);
+}
+.ob-side li.ob-active { color: var(--accent); }
+
+.ob-main {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background:
+    radial-gradient(70% 55% at 50% 45%, rgba(153, 102, 255, 0.08), transparent 70%);
+}
+.ob-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.ob-cta {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 14px;
+  font-size: 12px;
+  background: linear-gradient(transparent, rgba(5, 6, 10, 0.92) 70%);
+}
+
+/* ------------------------------------------------------------------ *
+ * Browser (contribution graph)
+ * ------------------------------------------------------------------ */
+.br-url {
+  flex: 1;
+  max-width: 430px;
+  padding: 3px 14px;
+  font-size: 11.5px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.br-body {
+  flex: 1;
+  padding: 16px 22px;
+  overflow: hidden;
+  font-size: 12px;
+}
+.br-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.br-avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: #12300a;
+  background: linear-gradient(135deg, var(--accent), var(--accent-violet));
+}
+.br-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.br-graph {
+  display: inline-block;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.02);
+}
+.br-cta { margin-top: 12px; }
+
+/* compact cells so 53 weeks fit the 800px panel */
+.lp-browser .contrib-months { grid-auto-columns: 13px; margin-bottom: 4px; }
+.lp-browser .contrib-grid { gap: 3px; }
+.lp-browser .contrib-week {
+  grid-template-rows: repeat(7, 10px);
+  gap: 3px;
+}
+.lp-browser .contrib-day {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+.lp-browser .contrib-legend {
+  margin-top: 0.7rem;
+  justify-content: flex-start;
+}
+
+/* ------------------------------------------------------------------ *
+ * Laptop keyboard (beat 2 types k-e-y-b-o-a-r-d-s ↵)
+ * ------------------------------------------------------------------ */
+.lpk {
+  display: grid;
+  grid-template-columns: repeat(60, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 4px;
+  padding: 6px;
+  width: 100%;
+  aspect-ratio: 15 / 5;
+  border-radius: 10px;
+  background: #0b0d13;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+.lpk-key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  color: rgba(231, 233, 238, 0.65);
+  border-radius: 5px;
+  background: linear-gradient(180deg, #2b303c 0%, #232833 55%, #1e222c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    inset 0 -2px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* lights up (and stays lit) as --b2 crosses --kt, with a keypress pulse */
+.lpk-type {
+  --lit-hi: #b5ff8f;
+  --lit-mid: var(--accent);
+  --lit-lo: #5faf35;
+  --lit-border: rgba(153, 255, 102, 0.5);
+  --lit-text: #12300a;
+  --lit: clamp(0, calc((var(--b2, 0) - var(--kt, 1)) * 70), 1);
+  --press: calc(var(--lit) - clamp(0, calc((var(--b2, 0) - var(--kt, 1) - 0.015) * 70), 1));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--lit-hi) calc(var(--lit) * 100%), #2b303c) 0%,
+    color-mix(in srgb, var(--lit-mid) calc(var(--lit) * 100%), #232833) 55%,
+    color-mix(in srgb, var(--lit-lo) calc(var(--lit) * 100%), #1e222c) 100%
+  );
+  border-color: color-mix(in srgb, var(--lit-border) calc(var(--lit) * 100%), rgba(255, 255, 255, 0.07));
+  color: color-mix(in srgb, var(--lit-text) calc(var(--lit) * 100%), rgba(231, 233, 238, 0.65));
+  transform: scale(calc(1 + var(--press) * 0.14));
+}
+.lpk-type-enter {
+  --lit-hi: #b499ff;
+  --lit-mid: var(--accent-violet);
+  --lit-lo: #5c35af;
+  --lit-border: rgba(153, 102, 255, 0.5);
+  --lit-text: #190a33;
+}
+
+/* ------------------------------------------------------------------ *
+ * Screen-space overlays
+ * ------------------------------------------------------------------ */
+.lp-intro {
+  position: absolute;
+  left: 50%;
+  top: 11%;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+  opacity: clamp(0, calc(1 - var(--b1, 0) * 3.5), 1);
+  pointer-events: none;
+}
+.lp-intro-name {
+  font-size: clamp(2.2rem, 6vw, 4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.lp-intro-sub {
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+}
+
+.lp-caps {
+  position: absolute;
+  left: 1.4rem;
+  bottom: 1.3rem;
+  pointer-events: none;
+}
+.lp-cap {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.lp-scroll[data-beat="1"] .lp-cap[data-i="1"],
+.lp-scroll[data-beat="2"] .lp-cap[data-i="2"],
+.lp-scroll[data-beat="3"] .lp-cap[data-i="3"],
+.lp-scroll[data-beat="4"] .lp-cap[data-i="4"],
+.lp-scroll[data-beat="5"] .lp-cap[data-i="5"],
+.lp-scroll[data-beat="6"] .lp-cap[data-i="6"],
+.lp-scroll[data-beat="7"] .lp-cap[data-i="7"],
+.lp-scroll[data-beat="8"] .lp-cap[data-i="8"] {
+  opacity: 1;
+}
+
+/* "view my keyboards" while hovering over the deck */
+.lp-cta-kb {
+  position: absolute;
+  left: 50%;
+  bottom: 3rem;
+  transform: translateX(-50%);
+  font-size: 0.85rem;
+  opacity: clamp(0, calc((var(--b2, 0) - 0.9) * 12 - var(--b3, 0) * 4), 1);
+  pointer-events: none;
+}
+.lp-scroll[data-beat="2"] .lp-cta-kb { pointer-events: auto; }
+.lp-cta-kb a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.lp-cta-kb a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.lp-cta-kb a:hover .card-arrow { transform: translate(3px, -3px); }
+
+.lp-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1.6rem;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--faint);
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: clamp(0, calc(1 - var(--b1, 0) * 5), 1);
+  pointer-events: none;
+}
+.lp-hint .mouse {
+  width: 22px;
+  height: 36px;
+  border: 1.5px solid var(--faint);
+  border-radius: 12px;
+  position: relative;
+}
+.lp-hint .mouse::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  width: 3px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--faint);
+  transform: translateX(-50%);
+  animation: wheel 1.6s ease-in-out infinite;
+}
+
+.lp-foot {
+  position: absolute;
+  right: 1.4rem;
+  bottom: 1.3rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------ *
+ * Small screens: bump in-screen type so the scaled-down panel stays legible
+ * ------------------------------------------------------------------ */
+@media (max-width: 640px) {
+  .lp-app { font-size: 15px; }
+  .lp-pre { font-size: 13.5px; }
+  .lp-page { padding: 14px 16px; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion: flatten the set into stacked, fully-revealed panels
+ * ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .lp-scroll {
+    height: auto;
+    --b1: 1; --b2: 1; --b3: 1; --b4: 1;
+    --b5: 1; --b6: 1; --b7: 1; --b8: 1;
+    --lid: 0deg;
+    --app: 0;
+  }
+  .lp-stage {
+    position: static;
+    height: auto;
+    overflow: visible;
+    perspective: none;
+  }
+  .lp-room,
+  .lp-desk,
+  .lp-hint,
+  .lp-caps,
+  .lp-cats,
+  .lp-lid-back,
+  .lp-chin,
+  .lp-screen::after {
+    display: none;
+  }
+  .lp-anchor { position: static; }
+  .lp-world,
+  .lp-rig,
+  .lp-laptop {
+    position: static;
+    transform: none !important;
+  }
+  .lp-lid,
+  .lp-base {
+    position: static;
+    transform: none;
+    width: min(94vw, 880px);
+    height: auto;
+    margin: 1.5rem auto;
+  }
+  .lp-base { padding: 1rem; }
+  .lp-base::before,
+  .lp-base::after,
+  .lp-wall { display: none; }
+  .lp-deck { position: static; padding: 0; }
+  .lp-lid-front { position: static; }
+  .lp-screen {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+  }
+  .lp-apps {
+    position: static;
+    width: auto;
+    display: block;
+    transform: none;
+  }
+  .lp-app {
+    width: auto;
+    height: auto;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    overflow: hidden;
+    background: rgba(8, 10, 16, 0.7);
+  }
+  .lp-appbody { overflow: visible; }
+  .lp-page,
+  .lp-page.past {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+  .lp-caret { animation: none; }
+  .lp-cta-kb {
+    position: static;
+    transform: none;
+    text-align: center;
+    margin: 0.5rem 0 2rem;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .lp-intro {
+    position: static;
+    transform: none;
+    opacity: 1;
+    padding: 4rem 1rem 0;
+  }
+  .ob-main { min-height: 420px; }
+  .lp-foot {
+    position: static;
+    text-align: center;
+    padding: 2rem 1rem 3rem;
+    border-top: 1px solid var(--glass-border);
+  }
+}
