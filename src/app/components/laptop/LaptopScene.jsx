@@ -220,27 +220,6 @@ const LaptopScene = ({ data, contributions }) => {
       }
     }
 
-    // The mirror image: scrolling up on the opening shot dives in, opens the
-    // lid, boots the screen and lands on the final (motd) slide.
-    const openTick = (now) => {
-      raf = 0
-      const u = Math.min(1, (now - animStart) / RESET_MS)
-      const e = easeBeat(u)
-      applyCam(mixPose(P.desk, P.screen, e))
-      root.style.setProperty('--lid', `${(-90 + e * 98).toFixed(2)}deg`)
-      root.style.setProperty('--b1', seg(u, 0.55, 0.95).toFixed(4))
-      document.documentElement.style.setProperty('--scene-p', e.toFixed(4))
-      if (u < 1) {
-        raf = requestAnimationFrame(openTick)
-      } else {
-        raw = BANDS
-        animating = false
-        cooldownUntil = performance.now() + 500
-        wheelAcc = 0
-        render(BANDS)
-      }
-    }
-
     const step = (dir) => {
       if (animating) return
       if (dir > 0 && raw >= BANDS) {
@@ -249,19 +228,6 @@ const LaptopScene = ({ data, contributions }) => {
         animStart = performance.now()
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(resetTick)
-        return
-      }
-      if (dir < 0 && raw <= 0) {
-        animating = true
-        root.dataset.beat = String(BANDS)
-        // stage the final slide behind the dark panel before the lid opens
-        for (let i = 2; i <= BANDS; i++) root.style.setProperty(`--b${i}`, '1')
-        subsRef.current.forEach((fn) =>
-          fn({ raw: BANDS, t: 1, bands: [0, ...Array(BANDS).fill(1)], reduced: false })
-        )
-        animStart = performance.now()
-        if (raf) cancelAnimationFrame(raf)
-        raf = requestAnimationFrame(openTick)
         return
       }
       const next = clamp(raw + dir, 0, BANDS)
