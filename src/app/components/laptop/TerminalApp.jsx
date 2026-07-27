@@ -130,14 +130,6 @@ const coSlug = (s) => slug(s.replace(/\s*\(.*?\)/g, '').trim())
 const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
 const pad = (s, n) => ' '.repeat(Math.max(2, n - s.length))
 
-const manHeader = (title) => {
-  const tag = `${title.toUpperCase()}(1)`
-  const mid = 'j6n manual'
-  const width = 86
-  const side = Math.max(1, Math.floor((width - tag.length * 2 - mid.length) / 2))
-  return `${tag}${' '.repeat(side)}${mid}${' '.repeat(width - tag.length * 2 - mid.length - side)}${tag}`
-}
-
 const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4] }) => {
   const ref = useRef(null)
   const { nodes, cats } = useMemo(buildCats, [])
@@ -273,14 +265,11 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
           <Prompt>
             <Typed text="cat ~/projects.md" from={0.18} to={0.42} />
           </Prompt>
-          <L at={0.44} className="lp-pre lp-faint">{manHeader('projects')}</L>
-          <L at={0.48} className="lp-manlabel">NAME</L>
-          <L at={0.5} className="lp-pre lp-indent">projects — things i build and maintain</L>
-          <L at={0.54} className="lp-manlabel">DESCRIPTION</L>
-          <L at={0.56} className="lp-pre lp-indent lp-faint">
+          <L at={0.46} className="lp-manlabel">PROJECTS</L>
+          <L at={0.52} className="lp-pre lp-indent lp-faint">
             {'DATE' + pad('DATE', 11) + 'PROJECT' + pad('PROJECT', 23) + 'DESCRIPTION'}
           </L>
-          {projects.map((p, i) => {
+          {projects.slice(0, 10).map((p, i) => {
             const range = years(p.startDate, p.endDate)
             const name = slug(p.name)
             return (
@@ -293,10 +282,19 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
                   name
                 )}
                 {pad(name, 23)}
-                <span className="lp-dim">{trunc(p.description.toLowerCase(), 50)}</span>
+                <span className="lp-dim">{trunc(p.description.toLowerCase(), 62)}</span>
               </L>
             )
           })}
+          <L at={0.86} className="lp-cta-line">
+            {projects.length > 10 && (
+              <span className="lp-faint">+{projects.length - 10} more · </span>
+            )}
+            view the full resume:{' '}
+            <a href="./resume" target="_blank" rel="noreferrer">
+              j6n.ca/resume <span className="card-arrow">↗</span>
+            </a>
+          </L>
         </div>
         )}
 
@@ -306,11 +304,8 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
           <Prompt>
             <Typed text="cat ~/work_experience.md" from={0.18} to={0.46} />
           </Prompt>
-          <L at={0.47} className="lp-pre lp-faint">{manHeader('work_experience')}</L>
-          <L at={0.51} className="lp-manlabel">NAME</L>
-          <L at={0.53} className="lp-pre lp-indent">work_experience — where i&apos;ve shipped</L>
-          <L at={0.57} className="lp-manlabel">HISTORY</L>
-          <L at={0.59} className="lp-pre lp-indent lp-faint">
+          <L at={0.5} className="lp-manlabel">WORK</L>
+          <L at={0.56} className="lp-pre lp-indent lp-faint">
             {'  DATE' + pad('DATE', 11) + 'COMPANY' + pad('COMPANY', 17) + 'ROLE'}
           </L>
           {work.map((w, i) => {
@@ -330,7 +325,7 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
                   {pad(range, 11)}
                   <span className="lp-accent">{name}</span>
                   {pad(name, 17)}
-                  <span className="lp-dim">{trunc(w.position.toLowerCase(), 46)}</span>
+                  <span className="lp-dim">{trunc(w.position.toLowerCase(), 56)}</span>
                 </button>
                 <div className={`lp-workdetail${open ? ' open' : ''}`}>
                   <div className="lp-workdetail-in">
