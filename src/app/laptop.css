@@ -491,7 +491,7 @@ body:has(.lp-scroll) {
 .lp-hl {
   margin-top: 0.25rem;
   padding-left: 8ch;
-  max-width: 72ch;
+  padding-right: 1ch;
   font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
