@@ -148,8 +148,13 @@ const LaptopScene = ({ data, contributions }) => {
     let target = 0
     let animStart = 0
     let animating = false
-    let cooldownUntil = 0
-    let wheelAcc = 0
+    let resetting = false
+    // gesture segmentation state (see onWheel)
+    let acc = 0
+    let gestureUsed = false
+    let lastWheelT = 0
+    let lastMag = 0
+    let lastStepT = 0
     let touchY = null
     let touchDone = false
 
@@ -214,9 +219,6 @@ const LaptopScene = ({ data, contributions }) => {
         raf = requestAnimationFrame(tick)
       } else {
         animating = false
-        // swallow the trackpad momentum tail so one flick = one beat
-        cooldownUntil = performance.now() + 400
-        wheelAcc = 0
       }
     }
 
@@ -238,24 +240,30 @@ const LaptopScene = ({ data, contributions }) => {
       } else {
         raw = 0
         animating = false
-        cooldownUntil = performance.now() + 500
-        wheelAcc = 0
+        resetting = false
         render(0)
       }
     }
 
+    // A fresh gesture mid-tween retargets the animation to the next beat
+    // from wherever the scene currently is — input is never blocked, so
+    // consecutive scrolls feel immediate. The outro only fires from rest.
     const step = (dir) => {
-      if (animating) return
-      if (dir > 0 && raw >= BANDS) {
+      if (resetting) return
+      const base = animating ? target : Math.round(raw)
+      if (dir > 0 && base >= BANDS) {
+        if (animating) return
         animating = true
+        resetting = true
         root.dataset.beat = '0'
         animStart = performance.now()
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(resetTick)
         return
       }
-      const next = clamp(raw + dir, 0, BANDS)
-      if (next === raw) return
+      const next = clamp(base + dir, 0, BANDS)
+      if (next === base && !animating) return
+      if (animating && next === target) return
       from = raw
       target = next
       animating = true
@@ -264,13 +272,44 @@ const LaptopScene = ({ data, contributions }) => {
       raf = requestAnimationFrame(tick)
     }
 
+    // One flick = one beat, without a blanket cooldown. Trackpads stream
+    // events every ~10ms with a decaying momentum tail, so a gesture is
+    // consumed after one step and a NEW gesture is recognized by either a
+    // pause between bursts or a sharp re-acceleration mid-tail. Sparse
+    // large-delta events (discrete mouse-wheel notches, or the hard first
+    // event of a strong flick) step directly on a short time floor.
     const onWheel = (e) => {
       e.preventDefault()
-      if (animating || performance.now() < cooldownUntil) return
-      wheelAcc += e.deltaY
-      if (Math.abs(wheelAcc) > 60) {
-        const dir = wheelAcc > 0 ? 1 : -1
-        wheelAcc = 0
+      const now = performance.now()
+      const gap = now - lastWheelT
+      lastWheelT = now
+      const mag = Math.abs(e.deltaY)
+
+      if (gap > 40 && mag > 50) {
+        // discrete notch / hard flick head
+        lastMag = mag
+        gestureUsed = true
+        acc = 0
+        if (now - lastStepT > 160) {
+          lastStepT = now
+          step(e.deltaY > 0 ? 1 : -1)
+        }
+        return
+      }
+
+      // continuous (trackpad) stream: segment into gestures
+      if (gap > 110 || mag > lastMag * 1.7 + 6) {
+        gestureUsed = false
+        acc = 0
+      }
+      lastMag = mag
+      if (gestureUsed) return
+      acc += e.deltaY
+      if (Math.abs(acc) > 50) {
+        const dir = acc > 0 ? 1 : -1
+        gestureUsed = true
+        acc = 0
+        lastStepT = now
         step(dir)
       }
     }
@@ -281,7 +320,7 @@ const LaptopScene = ({ data, contributions }) => {
     }
     const onTouchMove = (e) => {
       e.preventDefault()
-      if (touchDone || touchY == null || animating) return
+      if (touchDone || touchY == null) return
       const dy = touchY - e.touches[0].clientY
       if (Math.abs(dy) > 45) {
         touchDone = true
