@@ -153,7 +153,6 @@ const LaptopScene = ({ data, contributions }) => {
     let acc = 0
     let gestureUsed = false
     let lastWheelT = 0
-    let lastMag = 0
     let lastStepT = 0
     let touchY = null
     let touchDone = false
@@ -272,38 +271,27 @@ const LaptopScene = ({ data, contributions }) => {
       raf = requestAnimationFrame(tick)
     }
 
-    // One flick = one beat, without a blanket cooldown. Trackpads stream
-    // events every ~10ms with a decaying momentum tail, so a gesture is
-    // consumed after one step and a NEW gesture is recognized by either a
-    // pause between bursts or a sharp re-acceleration mid-tail. Sparse
-    // large-delta events (discrete mouse-wheel notches, or the hard first
-    // event of a strong flick) step directly on a short time floor.
+    // Strictly one step per physical gesture. A gesture is an unbroken
+    // stream of wheel events: trackpads emit every ~10ms through the whole
+    // flick + momentum tail, so only a real pause (>60ms of silence) starts
+    // a new gesture — and by the time a decaying tail has gaps that long,
+    // its deltas are too small to reach the step threshold before each
+    // sparse event resets the accumulator. A discrete mouse-wheel notch is
+    // its own gesture (one large delta after a pause) and steps directly.
+    const GESTURE_GAP = 60
+    const STEP_REFRACTORY = 250
     const onWheel = (e) => {
       e.preventDefault()
       const now = performance.now()
       const gap = now - lastWheelT
       lastWheelT = now
-      const mag = Math.abs(e.deltaY)
 
-      if (gap > 40 && mag > 50) {
-        // discrete notch / hard flick head
-        lastMag = mag
-        gestureUsed = true
-        acc = 0
-        if (now - lastStepT > 160) {
-          lastStepT = now
-          step(e.deltaY > 0 ? 1 : -1)
-        }
-        return
-      }
-
-      // continuous (trackpad) stream: segment into gestures
-      if (gap > 110 || mag > lastMag * 1.7 + 6) {
+      if (gap > GESTURE_GAP) {
         gestureUsed = false
         acc = 0
       }
-      lastMag = mag
       if (gestureUsed) return
+      if (now - lastStepT < STEP_REFRACTORY) return
       acc += e.deltaY
       if (Math.abs(acc) > 50) {
         const dir = acc > 0 ? 1 : -1
@@ -329,7 +317,7 @@ const LaptopScene = ({ data, contributions }) => {
     }
 
     const onKey = (e) => {
-      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
       if (['ArrowDown', 'PageDown', ' ', 'j'].includes(e.key)) {
         e.preventDefault()
         step(1)
