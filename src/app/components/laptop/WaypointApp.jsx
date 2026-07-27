@@ -1,27 +1,34 @@
 import React from 'react'
 
 /*
- * Waypoint (travel.j6n.dev) — a browser window replaying a 3-day Japan trip.
- * Everything runs on one shared 9s cycle, gated by the scene being on beat 3
- * ([data-beat="3"] in laptop.css): the route draws over ~6s, each stop pops
- * as the dot reaches it, the matching itinerary row highlights in sync, then
- * a short hold and the replay loops. Delays phase-shift the shared cycle, so
- * everything stays in sync across iterations.
+ * Waypoint (travel.j6n.dev) — a browser window replaying the classic
+ * "golden route" first-timer Japan trip: tokyo → hakone → kyoto → nara →
+ * osaka. Everything runs on one shared 9s cycle, gated by the scene being
+ * on beat 3 ([data-beat="3"] in laptop.css): the route draws over ~6s, each
+ * stop pops as the dot reaches it, the matching itinerary row highlights in
+ * sync, then a short hold and the replay loops. Delays phase-shift the
+ * shared cycle, so everything stays in sync across iterations.
  */
 
-// Tokyo (top right) → Hakone → Kyoto (bottom left), in map-pane user units.
+// Serpentine west-bound route in map-pane user units: tokyo (top right) →
+// hakone → kyoto → nara (dip back east) → osaka (bottom left).
 const ROUTE =
-  'M 540 70 C 520 95, 515 100, 500 112 C 460 145, 400 165, 360 190 ' +
-  'C 340 203, 332 212, 320 225 C 260 265, 200 285, 150 290 C 125 292, 108 275, 95 255'
+  'M 548 60 C 535 78, 524 86, 512 96 C 470 125, 440 140, 408 158 ' +
+  'C 394 168, 384 176, 372 186 C 320 205, 270 192, 222 196 ' +
+  'C 210 200, 204 212, 198 226 C 210 255, 240 270, 262 296 ' +
+  'C 245 320, 190 322, 150 330'
 
-// delay = when the dot passes the stop (draw runs 0.5s → 6.5s of the cycle)
+// delay = when the dot passes the stop (draw runs 0.5s → 6.5s of the cycle);
+// `end` anchors the label to the left of pins near the right map edge
 const STOPS = [
-  { x: 540, y: 70, name: 'sensō-ji', d: 0.5 },
-  { x: 500, y: 112, name: 'shibuya', d: 1.1 },
-  { x: 360, y: 190, name: 'lake ashi', d: 3.0 },
-  { x: 320, y: 225, name: 'onsen', d: 3.6 },
-  { x: 150, y: 290, name: 'fushimi inari', d: 5.5 },
-  { x: 95, y: 255, name: 'kinkaku-ji', d: 6.5 },
+  { x: 548, y: 60, name: 'sensō-ji', d: 0.5, end: true },
+  { x: 512, y: 96, name: 'shibuya', d: 1.0, end: true },
+  { x: 408, y: 158, name: 'lake ashi', d: 2.2 },
+  { x: 372, y: 186, name: 'onsen', d: 2.7 },
+  { x: 222, y: 196, name: 'kiyomizu-dera', d: 4.2 },
+  { x: 198, y: 226, name: 'fushimi inari', d: 4.5 },
+  { x: 262, y: 296, name: 'tōdai-ji', d: 5.3 },
+  { x: 150, y: 330, name: 'dōtonbori', d: 6.5 },
 ]
 
 const DAYS = [
@@ -29,22 +36,30 @@ const DAYS = [
     label: 'day 1 — tokyo',
     stops: [
       { time: '09:00', name: 'sensō-ji temple', d: 0.5 },
-      { time: '15:00', name: 'shibuya crossing', d: 1.1 },
+      { time: '15:00', name: 'shibuya crossing', d: 1.0 },
     ],
   },
   {
     label: 'day 2 — hakone',
     stops: [
-      { time: '10:00', name: 'lake ashi cruise', d: 3.0 },
-      { time: '16:00', name: 'ryokan + onsen', d: 3.6 },
+      { time: '10:00', name: 'lake ashi cruise', d: 2.2 },
+      { time: '16:00', name: 'ryokan + onsen', d: 2.7 },
     ],
   },
   {
     label: 'day 3 — kyoto',
     stops: [
-      { time: '08:00', name: 'fushimi inari', d: 5.5 },
-      { time: '14:00', name: 'kinkaku-ji', d: 6.5 },
+      { time: '09:00', name: 'kiyomizu-dera', d: 4.2 },
+      { time: '14:00', name: 'fushimi inari', d: 4.5 },
     ],
+  },
+  {
+    label: 'day 4 — nara',
+    stops: [{ time: '10:00', name: 'tōdai-ji + deer park', d: 5.3 }],
+  },
+  {
+    label: 'day 5 — osaka',
+    stops: [{ time: '18:00', name: 'dōtonbori', d: 6.5 }],
   },
 ]
 
@@ -61,7 +76,7 @@ const WaypointApp = () => (
 
     <div className="wp-body">
       <aside className="wp-side" aria-hidden="true">
-        <div className="wp-trip">japan · 3 days</div>
+        <div className="wp-trip">japan · golden route</div>
         {DAYS.map((day) => (
           <div key={day.label}>
             <div className="wp-day">{day.label}</div>
@@ -88,7 +103,12 @@ const WaypointApp = () => (
             <g key={s.name} className="wp-stop" style={{ '--d': `${s.d}s` }}>
               <circle cx={s.x} cy={s.y} r="6" className="wp-pin" />
               <circle cx={s.x} cy={s.y} r="11" className="wp-ring" />
-              <text x={s.x + 14} y={s.y + 4} className="wp-label">
+              <text
+                x={s.end ? s.x - 14 : s.x + 14}
+                y={s.y + 4}
+                textAnchor={s.end ? 'end' : 'start'}
+                className="wp-label"
+              >
                 {s.name}
               </text>
             </g>

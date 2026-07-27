@@ -13,18 +13,20 @@ const mulberry32 = (seed) => () => {
   return ((t ^ (t >>> 14)) >>> 0) / 4294967296
 }
 
-// The terminal "scrollback": one page per command scene. Each page is active
-// over a range of the global beat value (raw = scroll progress * 8). Ranges
-// extend past their resting beat (…4.12 instead of …4.0) so a finished scene
-// stays on screen while idle and only pushes away once the next beat's tween
-// is underway; the swaps at 2.8 and 6.5 happen while another app covers the
-// screen entirely.
+// The terminal "scrollback": one page per command scene, active over a range
+// of the global beat value (raw = scroll progress * beats). The app strip
+// holds three terminal panes (story order — every screen change swipes left),
+// each rendering a subset of these pages via the `pages` prop: [0] whoami,
+// [1,2,3] kubectl/projects/work, [4] motd. Push transitions only happen
+// between pages that share a pane; ranges extend past their resting beat
+// (…7.12 instead of …7.0) so a finished scene stays up while idle and only
+// pushes away once the next beat's tween is underway.
 const PAGE_RANGES = [
-  [0, 4.8], // whoami + about
-  [4.8, 6.12], // kubectl get po (+ cats)
+  [0, 99], // whoami + about — its pane is only on screen for beats 0–2
+  [0, 6.12], // kubectl get po (+ cats)
   [6.12, 7.12], // cat ~/projects.md
-  [7.12, 8.5], // cat ~/work_experience.md
-  [8.5, 99], // motd
+  [7.12, 99], // cat ~/work_experience.md
+  [0, 99], // motd — own pane, visible only on beat 10
 ]
 
 const Prompt = ({ children }) => (
@@ -127,7 +129,7 @@ const manHeader = (title) => {
   return `${tag}${' '.repeat(side)}${mid}${' '.repeat(width - tag.length * 2 - mid.length - side)}${tag}`
 }
 
-const TerminalApp = ({ basics, projects, work, subscribe }) => {
+const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4] }) => {
   const ref = useRef(null)
   const { nodes, cats } = useMemo(buildCats, [])
 
@@ -135,15 +137,17 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
   useEffect(() => {
     const el = ref.current
     if (!el || !subscribe) return
-    const pages = Array.from(el.querySelectorAll('.lp-page'))
+    const els = Array.from(el.querySelectorAll('.lp-page'))
     return subscribe(({ raw }) => {
-      pages.forEach((page, i) => {
-        const [from, to] = PAGE_RANGES[i]
+      els.forEach((page) => {
+        const [from, to] = PAGE_RANGES[Number(page.dataset.pi)]
         page.classList.toggle('on', raw >= from && raw < to)
         page.classList.toggle('past', raw >= to)
       })
     })
   }, [subscribe])
+
+  const has = (i) => pages.includes(i)
 
   return (
     <div className="lp-app lp-terminal" ref={ref}>
@@ -156,7 +160,8 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
 
       <div className="lp-appbody">
         {/* page 0 — whoami + about (beat 1) */}
-        <div className="lp-page on" style={{ '--bv': 'var(--b1, 0)' }}>
+        {has(0) && (
+        <div className="lp-page on" data-pi="0" style={{ '--bv': 'var(--b1, 0)' }}>
           <Prompt>
             <Typed text="whoami" from={0.5} to={0.68} />
           </Prompt>
@@ -185,9 +190,11 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
             [toronto] [observability] [homelab] [keyboards] [game-dev]
           </L>
         </div>
+        )}
 
         {/* page 1 — kubectl get po + kube-cats (beat 6) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b6, 0)' }}>
+        {has(1) && (
+        <div className="lp-page" data-pi="1" style={{ '--bv': 'var(--b6, 0)' }}>
           <Prompt>
             <Typed text="kubectl get po" from={0.28} to={0.52} />
           </Prompt>
@@ -247,9 +254,11 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
             ))}
           </div>
         </div>
+        )}
 
         {/* page 2 — cat ~/projects.md (beat 7) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b7, 0)' }}>
+        {has(2) && (
+        <div className="lp-page" data-pi="2" style={{ '--bv': 'var(--b7, 0)' }}>
           <Prompt>
             <Typed text="cat ~/projects.md" from={0.18} to={0.42} />
           </Prompt>
@@ -274,9 +283,11 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
             )
           })}
         </div>
+        )}
 
         {/* page 3 — cat ~/work_experience.md (beat 8) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b8, 0)' }}>
+        {has(3) && (
+        <div className="lp-page" data-pi="3" style={{ '--bv': 'var(--b8, 0)' }}>
           <Prompt>
             <Typed text="cat ~/work_experience.md" from={0.18} to={0.46} />
           </Prompt>
@@ -306,9 +317,11 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
             </a>
           </L>
         </div>
+        )}
 
         {/* page 4 — motd (beat 10) */}
-        <div className="lp-page" style={{ '--bv': 'var(--b10, 0)' }}>
+        {has(4) && (
+        <div className="lp-page" data-pi="4" style={{ '--bv': 'var(--b10, 0)' }}>
           <Prompt>
             <Typed text="motd" from={0.3} to={0.42} />
           </Prompt>
@@ -341,6 +354,7 @@ const TerminalApp = ({ basics, projects, work, subscribe }) => {
             thanks for scrolling — my inbox is open. ✉
           </L>
         </div>
+        )}
       </div>
     </div>
   )

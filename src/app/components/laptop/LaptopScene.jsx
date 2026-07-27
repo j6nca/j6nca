@@ -28,9 +28,11 @@ import BrowserApp from './BrowserApp'
  *   beat 9   swipe to the browser, contribution graph decodes
  *   beat 10  swipe back, motd — contact, resume, curl
  *
- * The screen's app strip is ordered [contrib, terminal, waypoint, getbud,
- * obsidian] so every transition except the two returns-to-terminal is a
- * single-screen swipe; --app is the strip index (terminal = 1).
+ * The screen's app strip is laid out in story order — terminal (whoami) ·
+ * waypoint · getbud · obsidian · terminal (kubectl/projects/work) · contrib
+ * browser · terminal (motd) — so every screen change is a single swipe to
+ * the left; --app is the strip index. The terminal appears three times, each
+ * pane rendering only its own scrollback pages (see TerminalApp's `pages`).
  */
 
 const BANDS = 10
@@ -179,15 +181,14 @@ const LaptopScene = ({ data, contributions }) => {
       const lid = smooth(seg(b[1], 0.05, 0.55))
       setVar(root, '--lid', `${(-90 + lid * 98).toFixed(2)}deg`)
 
-      // app strip index: 0 contrib · 1 terminal · 2 waypoint · 3 getbud · 4 obsidian
+      // app strip index — story order, every transition swipes left by one
       const app =
-        1 +
         smooth(seg(b[3], 0.32, 0.6)) + // → waypoint
         smooth(seg(b[4], 0.02, 0.3)) + // → getbud
-        smooth(seg(b[5], 0.02, 0.3)) - // → obsidian
-        3 * smooth(seg(b[6], 0, 0.26)) - // whoosh back to the terminal
+        smooth(seg(b[5], 0.02, 0.3)) + // → obsidian
+        smooth(seg(b[6], 0, 0.26)) + // → terminal (kubectl)
         smooth(seg(b[9], 0.02, 0.3)) + // → contribution browser
-        smooth(seg(b[10], 0, 0.26)) // back for motd
+        smooth(seg(b[10], 0, 0.26)) // → terminal (motd)
       setVar(root, '--app', app.toFixed(4))
 
       // camera
@@ -353,16 +354,19 @@ const LaptopScene = ({ data, contributions }) => {
                   <div className="lp-lid-front">
                     <div className="lp-screen">
                       <div className="lp-apps">
-                        <BrowserApp data={contributions} subscribe={subscribe} />
+                        <TerminalApp basics={data.basics} subscribe={subscribe} pages={[0]} />
+                        <WaypointApp />
+                        <GetbudApp />
+                        <ObsidianApp subscribe={subscribe} />
                         <TerminalApp
                           basics={data.basics}
                           projects={data.projects}
                           work={data.work}
                           subscribe={subscribe}
+                          pages={[1, 2, 3]}
                         />
-                        <WaypointApp />
-                        <GetbudApp />
-                        <ObsidianApp subscribe={subscribe} />
+                        <BrowserApp data={contributions} subscribe={subscribe} />
+                        <TerminalApp basics={data.basics} subscribe={subscribe} pages={[4]} />
                       </div>
                     </div>
                     <div className="lp-chin" aria-hidden="true">j6n</div>

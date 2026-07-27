@@ -300,10 +300,11 @@ body:has(.lp-scroll) {
 .lp-apps {
   position: absolute;
   inset: 0;
-  /* 5 screens: contrib · terminal · waypoint · getbud · obsidian */
-  width: 500%;
+  /* 7 panes in story order: terminal · waypoint · getbud · obsidian ·
+     terminal · contrib · terminal — every transition swipes left */
+  width: 700%;
   display: flex;
-  transform: translateX(calc(var(--app, 1) * -20%));
+  transform: translateX(calc(var(--app, 0) * -14.2857%));
   will-change: transform;
 }
 
@@ -587,7 +588,7 @@ body:has(.lp-scroll) {
   letter-spacing: 0.04em;
 }
 .wp-day {
-  margin: 0.7rem 0 0.35rem;
+  margin: 0.55rem 0 0.25rem;
   color: var(--accent-violet);
   font-size: 10.5px;
   letter-spacing: 0.07em;
@@ -602,12 +603,14 @@ body:has(.lp-scroll) {
 .lp-scroll[data-beat="3"] .wp-row {
   animation: wp-row-hi 9s linear var(--d, 0s) infinite;
 }
+/* 8 stops share the 9s cycle, so keep each highlight window short (~0.8s)
+   to limit overlap between back-to-back stops */
 @keyframes wp-row-hi {
-  0%, 21% {
+  0%, 8% {
     background: rgba(153, 255, 102, 0.12);
     color: var(--accent);
   }
-  23%, 100% {
+  10%, 100% {
     background: transparent;
     color: var(--muted);
   }
@@ -1049,7 +1052,7 @@ body:has(.lp-scroll) {
     --b1: 1; --b2: 1; --b3: 1; --b4: 1; --b5: 1;
     --b6: 1; --b7: 1; --b8: 1; --b9: 1; --b10: 1;
     --lid: 0deg;
-    --app: 1;
+    --app: 0;
   }
   .lp-stage {
     position: static;
