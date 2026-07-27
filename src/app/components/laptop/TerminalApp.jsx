@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import AsciiName from '../AsciiName'
 
 // Deterministic PRNG (mulberry32) so the server-rendered sprite layout
@@ -118,8 +118,17 @@ const buildCats = () => {
 }
 
 const year = (v) => (v && v !== 'present' ? v.slice(0, 4) : 'now')
+const years = (s, e) => {
+  const a = year(s)
+  const b = year(e || 'present')
+  return a === b ? a : `${a}–${b}`
+}
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9.]+/g, '-')
+// company names minus "(now X)" / "(acquired by X)" — that detail lives on
+// the full resume
+const coSlug = (s) => slug(s.replace(/\s*\(.*?\)/g, '').trim())
 const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
+const pad = (s, n) => ' '.repeat(Math.max(2, n - s.length))
 
 const manHeader = (title) => {
   const tag = `${title.toUpperCase()}(1)`
@@ -132,6 +141,8 @@ const manHeader = (title) => {
 const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4] }) => {
   const ref = useRef(null)
   const { nodes, cats } = useMemo(buildCats, [])
+  // accordion: at most one work entry expanded at a time
+  const [openWork, setOpenWork] = useState(-1)
 
   // Toggle page visibility from the scene's frame state.
   useEffect(() => {
@@ -266,19 +277,23 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
           <L at={0.48} className="lp-manlabel">NAME</L>
           <L at={0.5} className="lp-pre lp-indent">projects — things i build and maintain</L>
           <L at={0.54} className="lp-manlabel">DESCRIPTION</L>
+          <L at={0.56} className="lp-pre lp-indent lp-faint">
+            {'DATE' + pad('DATE', 11) + 'PROJECT' + pad('PROJECT', 23) + 'DESCRIPTION'}
+          </L>
           {projects.map((p, i) => {
+            const range = years(p.startDate, p.endDate)
             const name = slug(p.name)
-            const pad = ' '.repeat(Math.max(2, 24 - name.length))
             return (
-              <L key={p.name} at={0.58 + i * 0.026} className="lp-pre lp-indent">
-                {'- '}
+              <L key={p.name} at={0.585 + i * 0.024} className="lp-pre lp-indent">
+                <span className="lp-faint">{range}</span>
+                {pad(range, 11)}
                 {p.url ? (
                   <a href={p.url} target="_blank" rel="noreferrer">{name}</a>
                 ) : (
                   name
                 )}
-                {pad}
-                <span className="lp-dim">{trunc(p.description.toLowerCase(), 58)}</span>
+                {pad(name, 23)}
+                <span className="lp-dim">{trunc(p.description.toLowerCase(), 50)}</span>
               </L>
             )
           })}
@@ -295,18 +310,43 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
           <L at={0.51} className="lp-manlabel">NAME</L>
           <L at={0.53} className="lp-pre lp-indent">work_experience — where i&apos;ve shipped</L>
           <L at={0.57} className="lp-manlabel">HISTORY</L>
+          <L at={0.59} className="lp-pre lp-indent lp-faint">
+            {'  DATE' + pad('DATE', 11) + 'COMPANY' + pad('COMPANY', 17) + 'ROLE'}
+          </L>
           {work.map((w, i) => {
-            const range = `${year(w.startDate)}–${year(w.endDate || 'present')}`
-            const name = slug(w.name)
-            const pad = ' '.repeat(Math.max(2, 12 - range.length))
-            const pad2 = ' '.repeat(Math.max(2, 18 - name.length))
+            const range = years(w.startDate, w.endDate)
+            const name = coSlug(w.name)
+            const open = openWork === i
+            const highlights = w.highlights || []
             return (
-              <L key={`${w.name}-${w.startDate}`} at={0.61 + i * 0.032} className="lp-pre lp-indent">
-                <span className="lp-faint">{range}</span>
-                {pad}
-                <span className="lp-accent">{name}</span>
-                {pad2}
-                <span className="lp-dim">{trunc(w.position.toLowerCase(), 52)}</span>
+              <L key={`${w.name}-${w.startDate}`} at={0.62 + i * 0.03} className="lp-work">
+                <button
+                  type="button"
+                  className="lp-workrow lp-pre lp-indent"
+                  aria-expanded={open}
+                  onClick={() => setOpenWork(open ? -1 : i)}
+                >
+                  <span className="lp-faint">{open ? '▾ ' : '▸ '}{range}</span>
+                  {pad(range, 11)}
+                  <span className="lp-accent">{name}</span>
+                  {pad(name, 17)}
+                  <span className="lp-dim">{trunc(w.position.toLowerCase(), 46)}</span>
+                </button>
+                <div className={`lp-workdetail${open ? ' open' : ''}`}>
+                  <div className="lp-workdetail-in">
+                    {highlights.slice(0, 3).map((h) => (
+                      <div className="lp-hl" key={h}>
+                        · {h}
+                      </div>
+                    ))}
+                    {highlights.length > 3 && (
+                      <div className="lp-hl lp-faint">
+                        +{highlights.length - 3} more on the{' '}
+                        <a href="./resume" target="_blank" rel="noreferrer">full resume ↗</a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </L>
             )
           })}
