@@ -7,15 +7,17 @@ import React from 'react'
  * laptop.css) and the category nodes pop in staggered behind the sweep.
  */
 
+// Flows are percentages of income, normalized to 100 — the sankey shows
+// ratios only, no dollar figures.
 const FLOWS = [
-  { label: 'rent', amt: 3700, c: 'w' },
-  { label: 'groceries', amt: 1040, c: 'w' },
-  { label: 'dining', amt: 760, c: 'w' },
-  { label: 'transit', amt: 320, c: 'w' },
-  { label: 'rrsp', amt: 1200, c: 'v' },
-  { label: 'tfsa', amt: 1000, c: 'v' },
-  { label: 'keyboards', amt: 588, c: 'g' },
-  { label: 'misc', amt: 2280, c: 'f' },
+  { label: 'rent', amt: 34, c: 'w' },
+  { label: 'groceries', amt: 10, c: 'w' },
+  { label: 'dining', amt: 7, c: 'w' },
+  { label: 'transit', amt: 3, c: 'w' },
+  { label: 'rrsp', amt: 11, c: 'v' },
+  { label: 'tfsa', amt: 9, c: 'v' },
+  { label: 'keyboards', amt: 5, c: 'g' },
+  { label: 'misc', amt: 21, c: 'f' },
 ]
 const INCOME = FLOWS.reduce((sum, f) => sum + f.amt, 0)
 
@@ -50,7 +52,7 @@ const ribbon = (n) =>
   `M ${LX + BAR} ${n.ly0} C ${MIDL} ${n.ly0}, ${MIDR} ${n.ry0}, ${RX} ${n.ry0} ` +
   `L ${RX} ${n.ry1} C ${MIDR} ${n.ry1}, ${MIDL} ${n.ly1}, ${LX + BAR} ${n.ly1} Z`
 
-const money = (v) => `$${v.toLocaleString()}`
+const pct = (v) => `${v}%`
 
 const GetbudApp = () => (
   <div className="lp-app lp-getbud">
@@ -73,14 +75,14 @@ const GetbudApp = () => (
 
         <rect x={LX} y={leftTop} width={BAR} height={leftH} rx="3" className="gb-income" />
         <text x={LX} y={leftTop - 10} className="gb-label gb-label-strong">
-          income · {money(INCOME)}/mo
+          income · {pct(INCOME)}
         </text>
 
         {NODES.map((n, i) => (
           <g key={n.label} className="gb-node" style={{ '--i': i }}>
             <rect x={RX} y={n.ry0} width={BAR} height={n.h} rx="3" className={`gb-bar gb-${n.c}`} />
             <text x={RX + BAR + 8} y={(n.ry0 + n.ry1) / 2 + 3.5} className="gb-label">
-              {n.label} <tspan className="gb-amt">{money(n.amt)}</tspan>
+              {n.label} <tspan className="gb-amt">{pct(n.amt)}</tspan>
             </text>
           </g>
         ))}
