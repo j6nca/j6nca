@@ -90,8 +90,8 @@ const GetbudApp = () => (
     <div className="wp-cta">
       <span className="lp-accent">getbud</span>
       <span className="lp-dim"> — self-hosted budgeting: cash flow, tfsa/rrsp room, net worth · </span>
-      <a href="https://ctrl-research.github.io/getbud" target="_blank" rel="noreferrer">
-        ctrl-research.github.io/getbud <span className="card-arrow">↗</span>
+      <a href="https://getbud.j6n.dev" target="_blank" rel="noreferrer">
+        getbud.j6n.dev <span className="card-arrow">↗</span>
       </a>
     </div>
   </div>

@@ -132,8 +132,8 @@ const WaypointApp = () => (
     <div className="wp-cta">
       <span className="lp-accent">waypoint</span>
       <span className="lp-dim"> — plan · log · track your travels · </span>
-      <a href="https://ctrl-research.github.io/waypoint" target="_blank" rel="noreferrer">
-        ctrl-research.github.io/waypoint <span className="card-arrow">↗</span>
+      <a href="https://waypoint.j6n.dev" target="_blank" rel="noreferrer">
+        waypoint.j6n.dev <span className="card-arrow">↗</span>
       </a>
     </div>
   </div>
