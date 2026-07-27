@@ -119,7 +119,7 @@ const BrowserApp = ({ data, subscribe }) => {
         {weeks.length ? (
           <>
             <div className="br-head">
-              <span className="br-avatar" aria-hidden="true">j6n</span>
+              <img className="br-avatar" src="./images/gh-avatar.jpg" alt="" />
               <div>
                 <div className="br-name">j6nca</div>
                 <div className="lp-dim">
