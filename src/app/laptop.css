@@ -1108,6 +1108,12 @@ body:has(.lp-scroll) {
  * Small screens: bump in-screen type so the scaled-down panel stays legible
  * ------------------------------------------------------------------ */
 @media (max-width: 640px) {
+  /* the nowrap intro sub line is ~47ch; scale it to the viewport and relax
+     the tracking so it never clips on phones */
+  .lp-intro-sub {
+    font-size: clamp(0.55rem, 2.9vw, 0.85rem);
+    letter-spacing: 0.05em;
+  }
   .lp-app { font-size: 15px; }
   .lp-pre { font-size: 13.5px; }
   .lp-page { padding: 14px 16px; }
