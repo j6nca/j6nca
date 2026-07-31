@@ -7,6 +7,7 @@ import WaypointApp from './WaypointApp'
 import GetbudApp from './GetbudApp'
 import ObsidianApp from './ObsidianApp'
 import BrowserApp from './BrowserApp'
+import SplitFlap from '../SplitFlap'
 
 /*
  * The whole site is one scene: a laptop on a maple desk filling the viewport.
@@ -406,8 +407,12 @@ const LaptopScene = ({ data, contributions }) => {
 
         {/* screen-space overlays */}
         <div className="lp-intro" aria-hidden="true">
-          <div className="lp-intro-name">jonathan ng</div>
-          <div className="lp-intro-sub mono">site reliability engineer · toronto</div>
+          <div className="lp-intro-name">
+            <SplitFlap text="jonathan ng" startDelay={250} tickMs={60} settleMs={2750} />
+          </div>
+          <div className="lp-intro-sub mono">
+            <SplitFlap text="site reliability engineer · syde 2021 · toronto" startDelay={500} tickMs={45} settleMs={2500} />
+          </div>
         </div>
 
         <div className="lp-caps mono" aria-hidden="true">

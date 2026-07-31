@@ -967,6 +967,41 @@ body:has(.lp-scroll) {
   letter-spacing: 0.14em;
 }
 
+/* Split-flap cells: the hidden sizer holds the final glyph's width, the face
+   flips through the alphabet on top, centered so odd-width glyphs shimmer
+   around the slot instead of shoving the line sideways. */
+.flap-cell {
+  position: relative;
+  display: inline-block;
+}
+.flap-sizer {
+  visibility: hidden;
+}
+.flap-face {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+}
+.flap-cell.spin .flap-face {
+  animation: flap-tick 0.12s linear infinite;
+}
+@keyframes flap-tick {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleY(1);
+  }
+  50% {
+    transform: translateX(-50%) scaleY(0.3);
+    opacity: 0.6;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flap-cell.spin .flap-face {
+    animation: none;
+  }
+}
+
 .lp-caps {
   position: absolute;
   left: 1.4rem;
