@@ -19,6 +19,10 @@ function monthLabels(weeks) {
       last = month
     }
   })
+  // The first week is usually a partial month, leaving its label crammed
+  // against the next one (and duplicating the trailing month, since the
+  // window is a year) — drop it when it has fewer than 3 columns of room.
+  if (labels.length > 1 && labels[1].col - labels[0].col < 3) labels.shift()
   return labels
 }
 

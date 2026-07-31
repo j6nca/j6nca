@@ -859,24 +859,29 @@ body:has(.lp-scroll) {
   color: var(--text);
 }
 .br-graph {
-  display: inline-block;
-  padding: 12px 14px;
+  display: block;
+  width: max-content;
+  margin-inline: auto;
+  padding: 12px 8px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.02);
 }
 .br-cta { margin-top: 12px; }
 
-/* compact cells so 53 weeks fit the 800px panel */
-.lp-browser .contrib-months { grid-auto-columns: 13px; margin-bottom: 4px; }
-.lp-browser .contrib-grid { gap: 3px; }
+/* compact cells so 53 weeks fit the 800px panel; the month row's column
+   pitch must equal the day pitch (12px cell + 2px gap) or the labels drift
+   and stretch the graph past the panel edge */
+.lp-browser .contrib-months { grid-auto-columns: 12px; margin-bottom: 4px; }
+.lp-browser .contrib-months,
+.lp-browser .contrib-grid { gap: 2px; }
 .lp-browser .contrib-week {
-  grid-template-rows: repeat(7, 10px);
-  gap: 3px;
+  grid-template-rows: repeat(7, 12px);
+  gap: 2px;
 }
 .lp-browser .contrib-day {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 2px;
 }
 .lp-browser .contrib-legend {
