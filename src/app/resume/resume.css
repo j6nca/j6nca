@@ -1,3 +1,25 @@
+/* Resume is always white paper with black text, on screen and in print */
+body:has(.resume){
+  color: #000;
+  background: #fff;
+}
+
+body:has(.resume)::before{
+  display: none;
+}
+
+.resume,
+.resume a{
+  color: #000;
+}
+
+@media print{
+  body:has(.resume){
+    color: #000 !important;
+    background: #fff !important;
+  }
+}
+
 .resume h1{
   font-size: 18px;
   font-weight: bold;
