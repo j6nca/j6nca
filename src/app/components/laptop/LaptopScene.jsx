@@ -11,32 +11,33 @@ import SplitFlap from '../SplitFlap'
 
 /*
  * The whole site is one scene: a laptop on a maple desk filling the viewport.
- * The story advances in 8 discrete "beats" — any scroll intent (wheel burst,
+ * The story advances in 5 discrete "beats" — any scroll intent (wheel burst,
  * touch swipe, arrow key) tweens the scene to the next/previous beat. Each
- * beat's 0→1 progress is published as a CSS var (--b1..--b8) that all content
+ * beat's 0→1 progress is published as a CSS var (--b1..--b5) that all content
  * animation derives from, while this component lerps a CSS-3D camera between
- * three poses (desk → screen → keyboard → screen) and slides the on-screen
- * app strip (terminal / obsidian / browser).
+ * poses (desk → screen) and slides the on-screen app strip.
  *
  *   beat 1   lid opens, whoami + about types into the terminal
- *   beat 2   camera dives to the keyboard, k-e-y-b-o-a-r-d-s ↵ types itself
- *   beat 3   back to the screen, swipe to waypoint — the japan trip replays
- *   beat 4   swipe to getbud — the cash-flow sankey sweeps in
- *   beat 5   swipe to obsidian, the note-galaxy spins
- *   beat 6   swipe back, kubectl get po, kube-cats fly across the terminal
- *   beat 7   cat ~/projects.md
- *   beat 8   cat ~/work_experience.md
- *   beat 9   swipe to the browser, contribution graph decodes
- *   beat 10  swipe back, motd — contact, resume, curl
+ *   beat 2   cat ~/projects.md
+ *   beat 3   cat ~/work_experience.md
+ *   beat 4   swipe to the browser, contribution graph decodes
+ *   beat 5   swipe back, motd — contact, resume, curl
  *
- * The screen's app strip is laid out in story order — terminal (whoami) ·
- * waypoint · getbud · obsidian · terminal (kubectl/projects/work) · contrib
- * browser · terminal (motd) — so every screen change is a single swipe to
- * the left; --app is the strip index. The terminal appears three times, each
- * pane rendering only its own scrollback pages (see TerminalApp's `pages`).
+ * The screen's app strip is laid out in story order — terminal (whoami /
+ * projects / work) · contrib browser · terminal (motd) — so every screen
+ * change is a single swipe to the left; --app is the strip index.
+ *
+ * Project visualizations live off the main path. Clicking a project row that
+ * has one opens a "detail": the screen slides left to reveal the visual pane
+ * (waypoint · getbud · obsidian · kube-cats terminal) parked to the right of
+ * the strip, or — for keyboards — the camera dives to the deck while
+ * k-e-y-b-o-a-r-d-s ↵ types itself. The detail's 0→1 progress is published
+ * as --dp (raw), --ds (screen slide) and --kb (keyboard dive); the pane id
+ * is mirrored on [data-detail]. A "return to projects" action or any scroll
+ * intent closes it and the story resumes on the projects beat.
  */
 
-const BANDS = 10
+const BANDS = 5
 const SCREEN_W = 800
 const SCREEN_H = 500
 const LID_H = 560
@@ -45,16 +46,20 @@ const LAP_W = 840
 
 const CAPTIONS = [
   '01 — hello',
-  '02 — keyboards',
-  '03 — waypoint',
-  '04 — getbud',
-  '05 — nebula.md',
-  '06 — kube-cats',
-  '07 — projects',
-  '08 — experience',
-  '09 — commits',
-  '10 — contact',
+  '02 — projects',
+  '03 — experience',
+  '04 — commits',
+  '05 — contact',
 ]
+
+// detail id → caption; ids are what TerminalApp's project rows open
+const DETAILS = {
+  keyboards: '02 — projects · keyboards',
+  waypoint: '02 — projects · waypoint',
+  getbud: '02 — projects · getbud',
+  nebula: '02 — projects · nebula.md',
+  'kube-cats': '02 — projects · kube-cats',
+}
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
 const seg = (v, a, b) => clamp((v - a) / (b - a))
@@ -81,6 +86,8 @@ const LaptopScene = ({ data, contributions }) => {
   const worldRef = useRef(null)
   const rigRef = useRef(null)
   const subsRef = useRef(new Set())
+  // imperative detail navigation, populated by the scene effect
+  const navRef = useRef(null)
 
   // Children (nebula canvas, contribution decode, terminal pages) register a
   // callback and get the frame state after each scroll update — one driver,
@@ -89,6 +96,9 @@ const LaptopScene = ({ data, contributions }) => {
     subsRef.current.add(fn)
     return () => subsRef.current.delete(fn)
   }, [])
+
+  const openDetail = useCallback((id) => navRef.current?.open(id), [])
+  const closeDetail = useCallback(() => navRef.current?.close(), [])
 
   useEffect(() => {
     const root = rootRef.current
@@ -99,7 +109,14 @@ const LaptopScene = ({ data, contributions }) => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       // Static fallback: CSS flattens the scene; tell subscribers to render
       // their finished states once.
-      const state = { raw: BANDS, t: 1, bands: Array(BANDS + 1).fill(1), reduced: true }
+      const state = {
+        raw: BANDS,
+        t: 1,
+        bands: Array(BANDS + 1).fill(1),
+        reduced: true,
+        detail: null,
+        dp: 1,
+      }
       subsRef.current.forEach((fn) => fn(state))
       return
     }
@@ -158,9 +175,20 @@ const LaptopScene = ({ data, contributions }) => {
     let touchY = null
     let touchDone = false
 
+    // Project detail: `detail` is the open pane id (null when closed), `dp`
+    // its 0→1 progress, tweened on its own clock so a beat tween and a detail
+    // tween never fight over `raw`.
+    const DETAIL_MS = 1800
+    let detail = null
+    let dp = 0
+    let dFrom = 0
+    let dTarget = 0
+    let dStart = 0
+    let dAnimating = false
+
     // Custom-property writes invalidate style for the whole subtree, so only
     // touch a var when its value actually changed — at any given moment a
-    // beat tween moves one or two of them, not all ten.
+    // beat tween moves one or two of them, not all of them.
     const varCache = {}
     const setVar = (el, name, val) => {
       if (varCache[name] === val) return
@@ -188,25 +216,28 @@ const LaptopScene = ({ data, contributions }) => {
 
       // app strip index — story order, every transition swipes left by one
       const app =
-        smooth(seg(b[3], 0.32, 0.6)) + // → waypoint
-        smooth(seg(b[4], 0.02, 0.3)) + // → getbud
-        smooth(seg(b[5], 0.02, 0.3)) + // → obsidian
-        smooth(seg(b[6], 0, 0.26)) + // → terminal (kubectl)
-        smooth(seg(b[9], 0.02, 0.3)) + // → contribution browser
-        smooth(seg(b[10], 0, 0.26)) // → terminal (motd)
+        smooth(seg(b[4], 0.02, 0.3)) + // → contribution browser
+        smooth(seg(b[5], 0, 0.26)) // → terminal (motd)
       setVar(root, '--app', app.toFixed(4))
+
+      // project detail: screen slide for the pane details, camera dive for
+      // keyboards — the pane detail's page/typing reveals read --dp directly
+      const kb = detail === 'keyboards' ? dp : 0
+      const ds = detail && detail !== 'keyboards' ? smooth(seg(dp, 0, 0.4)) : 0
+      setVar(root, '--dp', dp.toFixed(4))
+      setVar(root, '--ds', ds.toFixed(4))
+      setVar(root, '--kb', kb.toFixed(4))
 
       // camera
       let c = P.desk
       c = mixPose(c, P.screen, smooth(seg(b[1], 0.25, 0.9)))
-      c = mixPose(c, P.keys, smooth(seg(b[2], 0.04, 0.46)))
-      c = mixPose(c, P.screen, smooth(seg(b[3], 0, 0.36)))
+      c = mixPose(c, P.keys, smooth(seg(kb, 0.04, 0.46)))
       applyCam(c)
 
       const beat = Math.min(BANDS, Math.floor(r + 0.5))
       if (root.dataset.beat !== String(beat)) root.dataset.beat = String(beat)
 
-      const state = { raw: r, t: r / BANDS, bands: b, reduced: false }
+      const state = { raw: r, t: r / BANDS, bands: b, reduced: false, detail, dp }
       subsRef.current.forEach((fn) => fn(state))
     }
 
@@ -221,6 +252,50 @@ const LaptopScene = ({ data, contributions }) => {
         animating = false
       }
     }
+
+    // Detail tween — same easing as the beats, on its own clock. When a
+    // close lands, the pane id is dropped so its CSS animations reset and a
+    // revisit replays from the start.
+    let dRaf = 0
+    const dTick = (now) => {
+      dRaf = 0
+      const u = Math.min(1, (now - dStart) / DETAIL_MS)
+      dp = dFrom + (dTarget - dFrom) * easeBeat(u)
+      if (u < 1) {
+        dRaf = requestAnimationFrame(dTick)
+      } else {
+        dAnimating = false
+        if (dTarget === 0) {
+          detail = null
+          delete root.dataset.detail
+        }
+      }
+      render(raw)
+    }
+    const tweenDetail = (to) => {
+      dFrom = dp
+      dTarget = to
+      dAnimating = true
+      dStart = performance.now()
+      if (dRaf) cancelAnimationFrame(dRaf)
+      dRaf = requestAnimationFrame(dTick)
+    }
+    const open = (id) => {
+      if (!(id in DETAILS) || animating || resetting) return
+      if (detail === id && (dTarget === 1 || dp === 1)) return
+      if (detail && detail !== id) {
+        // switching panes mid-close: jump straight to the new one
+        dp = 0
+      }
+      detail = id
+      root.dataset.detail = id
+      tweenDetail(1)
+    }
+    const close = () => {
+      if (!detail || (dAnimating && dTarget === 0)) return
+      tweenDetail(0)
+    }
+    navRef.current = { open, close }
 
     // End of the story: power the screen down, close the lid, dolly back to
     // the opening shot, then reset to beat 0 so the journey can replay.
@@ -248,8 +323,14 @@ const LaptopScene = ({ data, contributions }) => {
     // A fresh gesture mid-tween retargets the animation to the next beat
     // from wherever the scene currently is — input is never blocked, so
     // consecutive scrolls feel immediate. The outro only fires from rest.
+    // While a project detail is open (or opening), scroll intent in either
+    // direction closes it instead of moving the story.
     const step = (dir) => {
       if (resetting) return
+      if (detail) {
+        close()
+        return
+      }
       const base = animating ? target : Math.round(raw)
       if (dir > 0 && base >= BANDS) {
         if (animating) return
@@ -325,6 +406,8 @@ const LaptopScene = ({ data, contributions }) => {
       } else if (['ArrowUp', 'PageUp', 'k'].includes(e.key)) {
         e.preventDefault()
         step(-1)
+      } else if (e.key === 'Escape' && detail) {
+        close()
       }
     }
 
@@ -332,7 +415,7 @@ const LaptopScene = ({ data, contributions }) => {
       vw = window.innerWidth
       vh = window.innerHeight
       P = poses()
-      if (!animating) render(raw)
+      if (!animating && !dAnimating) render(raw)
     }
 
     render(0)
@@ -342,12 +425,14 @@ const LaptopScene = ({ data, contributions }) => {
     window.addEventListener('keydown', onKey)
     window.addEventListener('resize', onResize)
     return () => {
+      navRef.current = null
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
+      if (dRaf) cancelAnimationFrame(dRaf)
     }
   }, [])
 
@@ -382,19 +467,37 @@ const LaptopScene = ({ data, contributions }) => {
                   <div className="lp-lid-front">
                     <div className="lp-screen">
                       <div className="lp-apps">
-                        <TerminalApp basics={data.basics} subscribe={subscribe} pages={[0]} />
-                        <WaypointApp />
-                        <GetbudApp />
-                        <ObsidianApp subscribe={subscribe} />
                         <TerminalApp
                           basics={data.basics}
                           projects={data.projects}
                           work={data.work}
                           subscribe={subscribe}
-                          pages={[1, 2, 3]}
+                          pages={[0, 2, 3]}
+                          onOpen={openDetail}
                         />
                         <BrowserApp data={contributions} subscribe={subscribe} />
                         <TerminalApp basics={data.basics} subscribe={subscribe} pages={[4]} />
+                      </div>
+
+                      {/* project visuals, parked one screen to the right */}
+                      <div className="lp-detail">
+                        <div className="lp-detail-pane" data-d="waypoint">
+                          <WaypointApp onReturn={closeDetail} />
+                        </div>
+                        <div className="lp-detail-pane" data-d="getbud">
+                          <GetbudApp onReturn={closeDetail} />
+                        </div>
+                        <div className="lp-detail-pane" data-d="nebula">
+                          <ObsidianApp subscribe={subscribe} onReturn={closeDetail} />
+                        </div>
+                        <div className="lp-detail-pane" data-d="kube-cats">
+                          <TerminalApp
+                            basics={data.basics}
+                            subscribe={subscribe}
+                            pages={[1]}
+                            onReturn={closeDetail}
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="lp-chin" aria-hidden="true">j6n</div>
@@ -421,12 +524,20 @@ const LaptopScene = ({ data, contributions }) => {
               ✦ {c}
             </span>
           ))}
+          {Object.entries(DETAILS).map(([id, c]) => (
+            <span className="lp-cap" data-d={id} key={id}>
+              ✦ {c}
+            </span>
+          ))}
         </div>
 
         <div className="lp-cta-kb mono">
           <a href="https://blog.j6n.ca/keyboards/index" target="_blank" rel="noreferrer">
             view my keyboards <span className="card-arrow">↗</span>
           </a>
+          <button type="button" className="lp-return" onClick={closeDetail}>
+            ← return to projects
+          </button>
         </div>
 
         <div className="lp-hint" aria-hidden="true">

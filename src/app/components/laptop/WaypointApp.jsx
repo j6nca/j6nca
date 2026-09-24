@@ -3,8 +3,9 @@ import React from 'react'
 /*
  * Waypoint (travel.j6n.dev) — a browser window replaying the classic
  * "golden route" first-timer Japan trip: tokyo → hakone → kyoto → nara →
- * osaka. Everything runs on one shared 9s cycle, gated by the scene being
- * on beat 3 ([data-beat="3"] in laptop.css): the route draws over ~6s, each
+ * osaka. Everything runs on one shared 9s cycle, gated by the waypoint
+ * project detail being open ([data-detail="waypoint"] in laptop.css): the
+ * route draws over ~6s, each
  * stop pops as the dot reaches it, the matching itinerary row highlights in
  * sync, then a short hold and the replay loops. Delays phase-shift the
  * shared cycle, so everything stays in sync across iterations.
@@ -63,7 +64,7 @@ const DAYS = [
   },
 ]
 
-const WaypointApp = () => (
+const WaypointApp = ({ onReturn }) => (
   <div className="lp-app lp-waypoint">
     <div className="lp-appbar">
       <span className="lp-dots" aria-hidden="true">
@@ -130,11 +131,16 @@ const WaypointApp = () => (
     </div>
 
     <div className="wp-cta">
-      <span className="lp-accent">waypoint</span>
-      <span className="lp-dim"> — plan · log · track your travels · </span>
-      <a href="https://waypoint.j6n.dev" target="_blank" rel="noreferrer">
-        waypoint.j6n.dev <span className="card-arrow">↗</span>
-      </a>
+      <div className="wp-cta-line">
+        <span className="lp-accent">waypoint</span>
+        <span className="lp-dim"> — plan · log · track your travels · </span>
+        <a href="https://waypoint.j6n.dev" target="_blank" rel="noreferrer">
+          waypoint.j6n.dev <span className="card-arrow">↗</span>
+        </a>
+      </div>
+      <button type="button" className="lp-return" onClick={onReturn}>
+        ← return to projects
+      </button>
     </div>
   </div>
 )

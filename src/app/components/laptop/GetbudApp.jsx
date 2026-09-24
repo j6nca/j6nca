@@ -3,8 +3,9 @@ import React from 'react'
 /*
  * getbud — the cash-flow Sankey from the reports page: monthly income on the
  * left flowing into expense/investment categories on the right. The ribbons
- * sweep in left-to-right (clip-path animation gated on [data-beat="4"] in
- * laptop.css) and the category nodes pop in staggered behind the sweep.
+ * sweep in left-to-right (clip-path animation gated on the getbud project
+ * detail, [data-detail="getbud"] in laptop.css) and the category nodes pop
+ * in staggered behind the sweep.
  */
 
 // Flows are percentages of income, normalized to 100 — the sankey shows
@@ -54,7 +55,7 @@ const ribbon = (n) =>
 
 const pct = (v) => `${v}%`
 
-const GetbudApp = () => (
+const GetbudApp = ({ onReturn }) => (
   <div className="lp-app lp-getbud">
     <div className="lp-appbar">
       <span className="lp-dots" aria-hidden="true">
@@ -90,11 +91,16 @@ const GetbudApp = () => (
     </div>
 
     <div className="wp-cta">
-      <span className="lp-accent">getbud</span>
-      <span className="lp-dim"> — self-hosted budgeting: cash flow, tfsa/rrsp room, net worth · </span>
-      <a href="https://getbud.j6n.dev" target="_blank" rel="noreferrer">
-        getbud.j6n.dev <span className="card-arrow">↗</span>
-      </a>
+      <div className="wp-cta-line">
+        <span className="lp-accent">getbud</span>
+        <span className="lp-dim"> — self-hosted budgeting: cash flow, tfsa/rrsp room, net worth · </span>
+        <a href="https://getbud.j6n.dev" target="_blank" rel="noreferrer">
+          getbud.j6n.dev <span className="card-arrow">↗</span>
+        </a>
+      </div>
+      <button type="button" className="lp-return" onClick={onReturn}>
+        ← return to projects
+      </button>
     </div>
   </div>
 )

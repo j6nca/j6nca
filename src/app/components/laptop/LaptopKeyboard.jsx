@@ -11,8 +11,9 @@ const ROWS = [
 ]
 const COLS_PER_U = 4
 
-// While the camera hovers over the deck (beat 2), these keys "type" in
-// sequence — each lights up as --b2 crosses its --kt threshold and stays lit.
+// While the camera hovers over the deck (keyboards project detail), these
+// keys "type" in sequence — each lights up as --kb crosses its --kt threshold
+// and stays lit.
 const TYPE_SEQ = [...'keyboards', 'enter']
 const TYPE_START = 0.52
 const TYPE_STEP = 0.045

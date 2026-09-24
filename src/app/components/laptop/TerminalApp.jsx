@@ -14,20 +14,31 @@ const mulberry32 = (seed) => () => {
 }
 
 // The terminal "scrollback": one page per command scene, active over a range
-// of the global beat value (raw = scroll progress * beats). The app strip
-// holds three terminal panes (story order — every screen change swipes left),
-// each rendering a subset of these pages via the `pages` prop: [0] whoami,
-// [1,2,3] kubectl/projects/work, [4] motd. Push transitions only happen
+// of the global beat value (raw = beat progress). The app strip holds two
+// terminal panes (story order — every screen change swipes left), each
+// rendering a subset of these pages via the `pages` prop: [0,2,3]
+// whoami/projects/work, [4] motd. A third terminal lives off the story path
+// as the kube-cats project detail ([1]); its page is always on and reads the
+// detail progress (--dp) instead of a beat. Push transitions only happen
 // between pages that share a pane; ranges extend past their resting beat
-// (…7.12 instead of …7.0) so a finished scene stays up while idle and only
+// (…2.12 instead of …2.0) so a finished scene stays up while idle and only
 // pushes away once the next beat's tween is underway.
 const PAGE_RANGES = [
-  [0, 99], // whoami + about — its pane is only on screen for beats 0–2
-  [0, 6.12], // kubectl get po (+ cats)
-  [6.12, 7.12], // cat ~/projects.md
-  [7.12, 99], // cat ~/work_experience.md
-  [0, 99], // motd — own pane, visible only on beat 10
+  [0, 1.12], // whoami + about (beat 1)
+  null, // kubectl get po (+ cats) — kube-cats detail, always on
+  [1.12, 2.12], // cat ~/projects.md (beat 2)
+  [2.12, 99], // cat ~/work_experience.md (beat 3)
+  [0, 99], // motd — own pane, visible only on beat 5
 ]
+
+// project rows that open a visualization, keyed by the row's slug
+const DETAIL_OF = {
+  keyboards: 'keyboards',
+  waypoint: 'waypoint',
+  getbud: 'getbud',
+  'nebula.md': 'nebula',
+  'kube-cats': 'kube-cats',
+}
 
 const Prompt = ({ children }) => (
   <div className="term-cmd lp-prompt">
@@ -75,7 +86,7 @@ const POD_ROWS = [
 // The cluster that flies across the terminal while kubectl output streams
 // in: node UFOs with labels, pod cats at three-ish depths. Each sprite gets
 // its own flight duration/delay — the fleet runs on a time-based animation
-// (2–3.2s) once beat 4 is on stage, not on the beat tween.
+// (2–3.2s) once the kube-cats detail is open, not on the detail tween.
 const NODE_COUNT = 5
 const POD_COUNT = 50
 
@@ -130,7 +141,15 @@ const coSlug = (s) => slug(s.replace(/\s*\(.*?\)/g, '').trim())
 const trunc = (s, n) => (s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s)
 const pad = (s, n) => ' '.repeat(Math.max(2, n - s.length))
 
-const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4] }) => {
+const TerminalApp = ({
+  basics,
+  projects,
+  work,
+  subscribe,
+  pages = [0, 1, 2, 3, 4],
+  onOpen,
+  onReturn,
+}) => {
   const ref = useRef(null)
   const { nodes, cats } = useMemo(buildCats, [])
   // accordion: at most one work entry expanded at a time
@@ -143,7 +162,9 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
     const els = Array.from(el.querySelectorAll('.lp-page'))
     return subscribe(({ raw }) => {
       els.forEach((page) => {
-        const [from, to] = PAGE_RANGES[Number(page.dataset.pi)]
+        const range = PAGE_RANGES[Number(page.dataset.pi)]
+        if (!range) return
+        const [from, to] = range
         page.classList.toggle('on', raw >= from && raw < to)
         page.classList.toggle('past', raw >= to)
       })
@@ -195,17 +216,18 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
         </div>
         )}
 
-        {/* page 1 — kubectl get po + kube-cats (beat 6) */}
+        {/* page 1 — kubectl get po + kube-cats (project detail; the slide-in
+            runs over the first ~40% of --dp, then the command types) */}
         {has(1) && (
-        <div className="lp-page" data-pi="1" style={{ '--bv': 'var(--b6, 0)' }}>
+        <div className="lp-page on" data-pi="1" style={{ '--bv': 'var(--dp, 0)' }}>
           <Prompt>
-            <Typed text="kubectl get po" from={0.28} to={0.52} />
+            <Typed text="kubectl get po" from={0.4} to={0.6} />
           </Prompt>
-          <L at={0.56} className="lp-pre lp-dim">
+          <L at={0.62} className="lp-pre lp-dim">
             {'NAME                        READY   STATUS    RESTARTS   AGE'}
           </L>
           {POD_ROWS.map((row, i) => (
-            <L key={i} at={0.6 + i * 0.028} className="lp-pre">
+            <L key={i} at={0.65 + i * 0.025} className="lp-pre">
               {row}
             </L>
           ))}
@@ -215,6 +237,11 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
             <a href="https://github.com/j6nca/kube-cats" target="_blank" rel="noreferrer">
               github.com/j6nca/kube-cats <span className="card-arrow">↗</span>
             </a>
+          </L>
+          <L at={0.92}>
+            <button type="button" className="lp-return" onClick={onReturn}>
+              ← return to projects
+            </button>
           </L>
 
           <div className="lp-cats" aria-hidden="true">
@@ -259,30 +286,51 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
         </div>
         )}
 
-        {/* page 2 — cat ~/projects.md (beat 7) */}
+        {/* page 2 — cat ~/projects.md (beat 2). Rows with a visualization are
+            buttons that open the project detail; the rest keep their link. */}
         {has(2) && (
-        <div className="lp-page" data-pi="2" style={{ '--bv': 'var(--b7, 0)' }}>
+        <div className="lp-page" data-pi="2" style={{ '--bv': 'var(--b2, 0)' }}>
           <Prompt>
             <Typed text="cat ~/projects.md" from={0.18} to={0.42} />
           </Prompt>
           <L at={0.46} className="lp-manlabel">PROJECTS</L>
           <L at={0.52} className="lp-pre lp-indent lp-faint">
-            {'DATE' + pad('DATE', 11) + 'PROJECT' + pad('PROJECT', 23) + 'DESCRIPTION'}
+            {'  DATE' + pad('DATE', 11) + 'PROJECT' + pad('PROJECT', 23) + 'DESCRIPTION'}
           </L>
           {projects.slice(0, 10).map((p, i) => {
             const range = years(p.startDate, p.endDate)
             const name = slug(p.name)
+            const detail = onOpen ? DETAIL_OF[name] : undefined
+            const desc = (
+              <span className="lp-dim">{trunc(p.description.toLowerCase(), 62)}</span>
+            )
             return (
               <L key={p.name} at={0.585 + i * 0.024} className="lp-pre lp-indent">
-                <span className="lp-faint">{range}</span>
-                {pad(range, 11)}
-                {p.url ? (
-                  <a href={p.url} target="_blank" rel="noreferrer">{name}</a>
+                {detail ? (
+                  <button
+                    type="button"
+                    className="lp-workrow lp-projrow"
+                    onClick={() => onOpen(detail)}
+                  >
+                    <span className="lp-faint">▸ {range}</span>
+                    {pad(range, 11)}
+                    <span className="lp-accent">{name}</span>
+                    {pad(name, 23)}
+                    {desc}
+                  </button>
                 ) : (
-                  name
+                  <>
+                    <span className="lp-faint">{'  '}{range}</span>
+                    {pad(range, 11)}
+                    {p.url ? (
+                      <a href={p.url} target="_blank" rel="noreferrer">{name}</a>
+                    ) : (
+                      name
+                    )}
+                    {pad(name, 23)}
+                    {desc}
+                  </>
                 )}
-                {pad(name, 23)}
-                <span className="lp-dim">{trunc(p.description.toLowerCase(), 62)}</span>
               </L>
             )
           })}
@@ -298,9 +346,9 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
         </div>
         )}
 
-        {/* page 3 — cat ~/work_experience.md (beat 8) */}
+        {/* page 3 — cat ~/work_experience.md (beat 3) */}
         {has(3) && (
-        <div className="lp-page" data-pi="3" style={{ '--bv': 'var(--b8, 0)' }}>
+        <div className="lp-page" data-pi="3" style={{ '--bv': 'var(--b3, 0)' }}>
           <Prompt>
             <Typed text="cat ~/work_experience.md" from={0.18} to={0.46} />
           </Prompt>
@@ -354,9 +402,9 @@ const TerminalApp = ({ basics, projects, work, subscribe, pages = [0, 1, 2, 3, 4
         </div>
         )}
 
-        {/* page 4 — motd (beat 10) */}
+        {/* page 4 — motd (beat 5) */}
         {has(4) && (
-        <div className="lp-page" data-pi="4" style={{ '--bv': 'var(--b10, 0)' }}>
+        <div className="lp-page" data-pi="4" style={{ '--bv': 'var(--b5, 0)' }}>
           <Prompt>
             <Typed text="motd" from={0.3} to={0.42} />
           </Prompt>

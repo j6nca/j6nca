@@ -18,7 +18,7 @@ const PURPLE = [153, 102, 255]
 const WHITE = [231, 233, 238]
 
 // Same "note graph as galaxy" build as the nebula showcase, drawn inside the
-// obsidian-style graph pane and spun by the scene's beat-3 progress.
+// obsidian-style graph pane; spins whenever the nebula project detail is open.
 const buildGraph = () => {
   const rand = mulberry32(0x6e62) // "nb"
   const gauss = () => (rand() + rand() + rand()) / 3 - 0.5
@@ -85,7 +85,7 @@ const NOTES = [
   'todo.md',
 ]
 
-const ObsidianApp = ({ subscribe }) => {
+const ObsidianApp = ({ subscribe, onReturn }) => {
   const canvasRef = useRef(null)
   const graph = useMemo(buildGraph, [])
 
@@ -208,7 +208,7 @@ const ObsidianApp = ({ subscribe }) => {
     if (reducedMotion || !subscribe) return
 
     // The galaxy spins on its own clock (one revolution ≈ 26s) whenever the
-    // obsidian pane is anywhere on screen — including while idle on the beat.
+    // obsidian pane is anywhere on screen — the whole time its detail is open.
     let vis = false
     let raf = 0
     const loop = (now) => {
@@ -217,13 +217,13 @@ const ObsidianApp = ({ subscribe }) => {
     }
     raf = requestAnimationFrame(loop)
 
-    const unsub = subscribe(({ bands, reduced }) => {
+    const unsub = subscribe(({ detail, reduced }) => {
       if (reduced) {
         vis = false
         draw(0.35)
         return
       }
-      vis = bands[5] > 0.3 && bands[6] < 0.3
+      vis = detail === 'nebula'
     })
     return () => {
       cancelAnimationFrame(raf)
@@ -253,11 +253,16 @@ const ObsidianApp = ({ subscribe }) => {
         <div className="ob-main">
           <canvas ref={canvasRef} className="ob-canvas" aria-hidden="true" />
           <div className="ob-cta">
-            <span className="lp-accent">nebula.md</span>
-            <span className="lp-dim"> — render your notes as an interactive galaxy · </span>
-            <a href="https://nebula-md.j6n.dev/" target="_blank" rel="noreferrer">
-              nebula-md.j6n.dev <span className="card-arrow">↗</span>
-            </a>
+            <div>
+              <span className="lp-accent">nebula.md</span>
+              <span className="lp-dim"> — render your notes as an interactive galaxy · </span>
+              <a href="https://nebula-md.j6n.dev/" target="_blank" rel="noreferrer">
+                nebula-md.j6n.dev <span className="card-arrow">↗</span>
+              </a>
+            </div>
+            <button type="button" className="lp-return" onClick={onReturn}>
+              ← return to projects
+            </button>
           </div>
         </div>
       </div>
