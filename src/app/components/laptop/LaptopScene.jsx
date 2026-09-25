@@ -81,7 +81,9 @@ const mixPose = (A, B, u) =>
           ry: mix(A.ry, B.ry, u),
         }
 
-const LaptopScene = ({ data, contributions }) => {
+// `mobileHref`: when the scene was forced onto a phone-sized viewport
+// (?desktop), a link back to the plain mobile site.
+const LaptopScene = ({ data, contributions, mobileHref }) => {
   const rootRef = useRef(null)
   const worldRef = useRef(null)
   const rigRef = useRef(null)
@@ -545,7 +547,10 @@ const LaptopScene = ({ data, contributions }) => {
           scroll
         </div>
 
-        <div className="lp-foot mono">© {data.basics.name}</div>
+        <div className="lp-foot mono">
+          {mobileHref && <a href={mobileHref}>mobile view</a>}
+          <span>© {data.basics.name}</span>
+        </div>
       </div>
     </section>
   )

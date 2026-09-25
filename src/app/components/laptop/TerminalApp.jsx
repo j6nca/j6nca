@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import AsciiName from '../AsciiName'
+import AboutBlurb from '../AboutBlurb'
 
 // Deterministic PRNG (mulberry32) so the server-rendered sprite layout
 // matches the client exactly — Math.random would break hydration.
@@ -197,13 +198,7 @@ const TerminalApp = ({
             maker-of-things <span className="lp-sep">/</span> toronto, ca
           </L>
           <L at={0.82} className="lp-para">
-            I build and keep distributed systems healthy — observability,
-            internal platforms, and the automation that makes shipping calm.
-            Off the clock it&apos;s homelab, custom keyboards, cooking, fishing,
-            and far too many video games. See what I&apos;m working on{' '}
-            <a href="https://trello.com/b/7yMlHI5q/todos" target="_blank" rel="noreferrer">here</a>,
-            read the <a href="https://blog.j6n.ca">blog</a>, or poke around the{' '}
-            <a href="https://meow.j6n.dev">homelab</a>.
+            <AboutBlurb />
           </L>
           <L at={0.88} className="lp-linkrow">
             <a href="./resume" target="_blank" rel="noreferrer">resume</a>

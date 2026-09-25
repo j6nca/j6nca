@@ -1168,11 +1168,19 @@ body:has(.lp-scroll) {
   position: absolute;
   right: 1.4rem;
   bottom: 1.3rem;
+  display: flex;
+  gap: 0.9rem;
   font-size: 0.72rem;
   letter-spacing: 0.04em;
   color: var(--faint);
   pointer-events: none;
 }
+.lp-foot a {
+  pointer-events: auto;
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+.lp-foot a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* ------------------------------------------------------------------ *
  * Small screens: bump in-screen type so the scaled-down panel stays legible
@@ -1187,6 +1195,13 @@ body:has(.lp-scroll) {
   .lp-app { font-size: 15px; }
   .lp-pre { font-size: 13.5px; }
   .lp-page { padding: 14px 16px; }
+  /* the bottom edge is shared with the scroll hint and beat caption on a
+     phone — park the footer (and its "mobile view" link) top-right */
+  .lp-foot {
+    bottom: auto;
+    top: 0.9rem;
+    right: 1rem;
+  }
   /* lighter compositing load for phone GPUs: half the cat fleet and a
      desk without the repeating grain layers */
   .lp-cat:nth-of-type(2n) { display: none; }

@@ -1,0 +1,256 @@
+/* ==================================================================== *
+ * Mobile site — four full-screen, snap-scrolling pages for narrow viewports
+ * (MobileSite.jsx, chosen by SiteSwitch) with a persistent footer bar.
+ * Server-rendered for everyone and hidden on wide screens, where the laptop
+ * scene takes over after hydration.
+ * ==================================================================== */
+
+.m-site {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  height: 100dvh;
+  font-size: 15px;
+  line-height: 1.6;
+}
+@media (min-width: 768px) {
+  .m-site { display: none; }
+}
+
+.m-site a {
+  color: var(--accent-cyan);
+  text-decoration: none;
+}
+.m-site a:hover,
+.m-site a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* the scroller: each page snaps to the top; pages taller than the viewport
+   still scroll through normally */
+.m-pages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.m-page {
+  position: relative;
+  min-height: 100%;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  padding: 2.25rem 2.25rem 2.25rem 1.25rem; /* right gutter clears the dot rail */
+}
+/* hairline + glow separating consecutive pages */
+.m-page + .m-page::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-violet), transparent 85%);
+  opacity: 0.55;
+}
+.m-page-in {
+  max-width: 560px;
+  width: 100%;
+}
+.m-hero {
+  justify-content: center;
+}
+.m-hint {
+  position: absolute;
+  left: 1.25rem;
+  bottom: 1.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+
+/* "NN $ command" page labels */
+.m-h2 {
+  margin: 0 0 0.6rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--faint);
+}
+.m-n {
+  margin-right: 0.7rem;
+  color: var(--accent-violet);
+  opacity: 0.7;
+}
+.m-dollar { color: var(--accent-violet); }
+
+/* whoami */
+.m-name {
+  margin: 0;
+  font-size: clamp(2.2rem, 11vw, 2.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  color: var(--text);
+}
+.m-label {
+  margin-top: 0.55rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.m-sep { color: var(--faint); margin: 0 0.25rem; }
+.m-about {
+  margin-top: 1rem;
+  color: var(--muted);
+}
+.m-tags {
+  margin-top: 0.8rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+/* rows */
+.m-list {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+}
+.m-item,
+.m-work {
+  padding: 0.8rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.m-item:first-child,
+.m-work:first-child { border-top: none; }
+.m-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+.m-item-name {
+  font-weight: 600;
+  color: var(--text);
+}
+a.m-item-name { color: var(--accent-cyan); }
+.m-item-date {
+  flex: none;
+  font-size: 0.74rem;
+  color: var(--faint);
+}
+.m-item-desc,
+.m-work-role {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.m-work-role { display: block; }
+
+/* work history: native <details> accordion */
+.m-work-sum {
+  list-style: none;
+  cursor: pointer;
+  padding-left: 1.1rem;
+  position: relative;
+}
+.m-work-sum::-webkit-details-marker { display: none; }
+.m-work-sum::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  top: 0.05em;
+  color: var(--faint);
+  font-size: 0.8rem;
+}
+.m-work[open] .m-work-sum::before { content: "▾"; }
+.m-hl {
+  margin: 0.6rem 0 0;
+  padding-left: 2.2rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.m-hl li + li { margin-top: 0.4rem; }
+.m-more,
+.m-sub {
+  margin-top: 0.9rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.m-links { font-size: 0.82rem; }
+.m-copy {
+  margin-top: 2rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+}
+
+/* contribution graph: reuses .contrib-* from globals.css. The grid is a year
+   wide, so it scrolls sideways; rtl on the scroller opens it at the recent
+   end (the graph itself flips back to ltr). */
+.m-contrib {
+  margin-top: 1rem;
+  direction: rtl;
+}
+.m-contrib .contrib-graph { direction: ltr; }
+.m-contrib .contrib-legend { justify-content: flex-end; }
+
+/* page rail */
+.m-dots {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.4rem 0;
+}
+.m-dot {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+.m-dot::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+.m-dot.on::after {
+  background: var(--accent-cyan);
+  transform: scale(1.25);
+  box-shadow: 0 0 8px rgba(153, 255, 102, 0.6);
+}
+
+/* persistent footer bar */
+.m-bar {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.8rem 1.25rem;
+  padding-bottom: calc(0.8rem + env(safe-area-inset-bottom, 0px));
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+  border-top: 1px solid var(--glass-border);
+  background: rgba(5, 6, 10, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.m-bar a { white-space: nowrap; }
+.m-bar a:last-child { color: var(--muted); }
