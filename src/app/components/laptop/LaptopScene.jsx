@@ -92,6 +92,9 @@ const isNightNow = () => {
   return h < DAY_START || h >= NIGHT_START
 }
 
+const isLowPower = () =>
+  window.matchMedia('(pointer: coarse)').matches || (navigator.deviceMemory ?? 8) <= 4
+
 // Backdrop behind the (transparent) canvas: the day/night sky gradient
 // (stars by night), crossfaded by [data-mood] in three.css. The clouds,
 // sun and moon are 3D (three/Sky.jsx).
@@ -114,6 +117,8 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
   // then the floor lamp in the room toggles it; the CSS sky reads
   // [data-mood] and World3D eases its lights toward it
   const [night, setNight] = useState(isNightNow)
+  // touch devices or ≤4GB memory get a lighter render (see Canvas/World3D)
+  const [lowPower] = useState(isLowPower)
   const toggleMood = useCallback(() => setNight((n) => !n), [])
 
   // Children (World3D camera, nebula canvas, contribution decode, terminal
@@ -524,9 +529,11 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
           <Canvas
             className="lp-canvas"
             shadows
-            dpr={[1, 2]}
+            // phones/tablets render at ≤1.5× — 2× on a 3× screen is ~1.8×
+            // the pixels (and the antialias buffers) for little visible gain
+            dpr={lowPower ? [1, 1.5] : [1, 2]}
             gl={{ antialias: true, toneMappingExposure: 1.25 }}
-            camera={{ fov: 42, near: 20, far: 20000, position: [690, 1886, 2974] }}
+            camera={{ fov: 42, near: 20, far: 150000, position: [690, 1886, 2974] }}
           >
             <World3D
               subscribe={subscribe}
@@ -537,6 +544,7 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
               onClose={closeDetail}
               night={night}
               onToggleMood={toggleMood}
+              lowPower={lowPower}
             />
           </Canvas>
         )}

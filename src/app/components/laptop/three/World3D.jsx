@@ -61,6 +61,12 @@ const POSE_KEYS = { look: [0, 30, -1100], dir: [0, -0.88, -0.475] }
 // view height in world units at a given camera distance (fov is fixed)
 const viewH = (d) => 2 * d * Math.tan((FOV / 2) * DEG)
 
+// opening-shot scale: fit ~15600 world units across, or ~12000 down. On a
+// portrait screen the width fit alone would park the camera ~35000 out
+// (past the far plane, so the room vanished); there, frame tighter across
+// and let the sky margin crop.
+const roomScale = (vw, vh) => Math.min(vw / (vw < vh ? 8200 : 15600), vh / 12000)
+
 /* ------------------------------------------------------------------ *
  * Textures: the wood floor is procedural (canvas → CanvasTexture); the
  * monitor wallpaper is an image from /public/textures.
@@ -432,7 +438,9 @@ const MonitorArm = () => {
   )
 }
 
-const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, night, onToggleMood }) => {
+const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, night, onToggleMood, lowPower }) => {
+  // phones/tablets: smaller shadow maps (each 2048² map is ~22MB of GPU memory)
+  const shadowSize = lowPower ? 1024 : 2048
   // day/night: `t` eases toward `night` each frame (see MOOD)
   const mood = useRef({ t: night ? 1 : 0 })
   const nightRef = useRef(night)
@@ -493,7 +501,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
   // Match the opening pose before the first painted frame, so a refresh
   // never flashes the (stale, closer) default camera position.
   useLayoutEffect(() => {
-    const sRoom = Math.min(size.width / 15600, size.height / 12000)
+    const sRoom = roomScale(size.width, size.height)
     // include the default opening framing so the first painted frame matches
     const dRoom = (size.height / sRoom / viewH(1)) * 0.8
     camera.position.set(
@@ -554,7 +562,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
     // distances mirror the old scale formulas: the camera should see
     // (viewport height / scale) world units of view height, and viewH(d) is
     // proportional to d — so d = (vh / s) / viewH(1)
-    const sRoom = Math.min(vw / 15600, vh / 12000)
+    const sRoom = roomScale(vw, vh)
     const dRoom = vh / sRoom / viewH(1)
     const sKeys = Math.min((vw * 0.86) / 840, (vh * 0.95) / 560)
     const dKeys = vh / sKeys / viewH(1)
@@ -619,8 +627,8 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
         intensity={3.2}
         color="#ffd9a8"
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={shadowSize}
+        shadow-mapSize-height={shadowSize}
       />
       {/* cool fill so the shadows aren't crushed: daylight → moonlight */}
       <directionalLight ref={setLight('fill')} position={[-300, 800, 2600]} intensity={0.35} color="#cfe0ff" />
@@ -629,7 +637,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
       <pointLight ref={setLight('wash')} position={[0, 420, -1350]} intensity={500000} color="#4a90d9" distance={3000} decay={2} />
 
       {/* ---------------- outside: sun/moon + light, drifting clouds ---- */}
-      <SunMoon mood={mood} onToggle={onToggleMood} />
+      <SunMoon mood={mood} onToggle={onToggleMood} shadowSize={shadowSize} />
       <Clouds mood={mood} />
 
       {/* ---------------- shell ---------------- */}

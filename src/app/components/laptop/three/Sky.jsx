@@ -50,7 +50,7 @@ const occludedSkyClick = (e, scene) => {
     .some(({ object }) => object.isMesh && object.visible && object.renderOrder >= 0 && object.material?.depthWrite !== false)
 }
 
-export const SunMoon = ({ mood, onToggle }) => {
+export const SunMoon = ({ mood, onToggle, shadowSize = 2048 }) => {
   const { scene } = useThree()
   const glow = useMemo(() => makeGlow(), [])
   const light = useRef(null)
@@ -95,8 +95,8 @@ export const SunMoon = ({ mood, onToggle }) => {
         ref={light}
         position={SUN_POS.toArray()}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={shadowSize}
+        shadow-mapSize-height={shadowSize}
         shadow-camera-left={-3600}
         shadow-camera-right={3600}
         shadow-camera-top={3600}
@@ -161,7 +161,8 @@ export const SunMoon = ({ mood, onToggle }) => {
  * One InstancedMesh holds every puff; clouds drift across the view and
  * wrap, shrinking away at the wrap so nothing pops.
  * ------------------------------------------------------------------ */
-const CLOUD_DIST = 17000 // in front of the camera (far plane is 20000)
+const CLOUD_DIST = 17000 // layout depth in front of the camera, before DEPTH_K
+const DEPTH_K = 7
 const SPAN = 30000 // drift wrap width — wider than the view at that depth
 const DAY_CLOUD = new THREE.Color('#ffffff')
 const NIGHT_CLOUD = new THREE.Color('#5d6a8c')
@@ -241,6 +242,10 @@ export const Clouds = ({ mood }) => {
   })
 
   return createPortal(
+    // the whole layer scaled up about the camera: same look on screen, but
+    // ~120000 out, so it stays behind the room even when the opening shot
+    // pulls far back (far plane: 150000)
+    <group scale={DEPTH_K}>
     <instancedMesh ref={ref} args={[undefined, undefined, count]} frustumCulled={false} renderOrder={-10}>
       <sphereGeometry args={[1, 22, 14]} />
       <meshStandardMaterial
@@ -252,7 +257,8 @@ export const Clouds = ({ mood }) => {
         transparent
         depthWrite={false}
       />
-    </instancedMesh>,
+    </instancedMesh>
+    </group>,
     camera,
   )
 }
