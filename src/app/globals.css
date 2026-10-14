@@ -401,7 +401,7 @@ body::before {
   }
 }
 
-/* whoami output: figlet-style name + plain terminal text.
+/* whoami output: block-letter name art + plain terminal text.
    The art renders at a fixed size and AsciiName scales it with a transform to
    fit the container — shrinking via font-size warps the columns on mobile
    (per-glyph advance rounding at ~5px sizes).
@@ -409,14 +409,18 @@ body::before {
    default monospace, which on Android draws the box glyphs from a different
    face and misaligns the columns. */
 .term-name-box {
-  overflow: hidden;
+  /* clip only the unscaled layout width; block glyphs run a little taller
+     than the tight line-height, so never crop vertically */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 .term-name {
   margin: 0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   font-variant-ligatures: none;
-  font-size: 0.72rem;
-  line-height: 1.2;
+  /* 4 rows of half-block art: set large, AsciiName scales it down to fit */
+  font-size: 1.5rem;
+  line-height: 1.05;
   font-weight: 400;
   white-space: pre;
   width: max-content;

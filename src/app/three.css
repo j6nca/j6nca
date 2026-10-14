@@ -1,0 +1,167 @@
+/* ==================================================================== *
+ * three.js scene chrome — the canvas, the DOM screen attached to the lid
+ * (drei <Html transform>), and the reduced-motion flat fallback.
+ *
+ * The laptop apps keep using the .lp-screen / .lp-apps / .lp-detail rules
+ * in laptop.css; this file only adds the bits the CSS-3D set used to
+ * provide (lid-front background, canvas sizing) and layering so the
+ * screen-space overlays sit above the Html screen (which lives in
+ * zIndexRange [5, 0]).
+ * ==================================================================== */
+
+.lp-canvas {
+  position: absolute;
+  inset: 0;
+}
+.lp-canvas canvas {
+  display: block;
+}
+
+/* the display surface, as DOM: fills the ultrawide's panel exactly —
+   no bezel/chin (that was the laptop lid); the apps run edge to edge and
+   letterbox on the wallpaper beyond the DOM's width */
+.lp-screen-html {
+  position: relative;
+  width: 800px;
+  height: 500px;
+}
+.lp-screen-html .lp-screen {
+  left: 0;
+  top: 0;
+  width: 800px;
+  height: 500px;
+  border-radius: 12px;
+  outline: 1px solid rgba(255, 255, 255, 0.14);
+  outline-offset: -1px;
+}
+
+/* overlays must beat the Html screen (zIndex 5) */
+.lp-intro,
+.lp-caps,
+.lp-cta-kb,
+.lp-hint,
+.lp-foot {
+  z-index: 10;
+}
+
+/* ------------------------------------------------------------------ *
+ * Reduced motion: flat stack of the same app panes
+ * ------------------------------------------------------------------ */
+.lp-static {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 0;
+}
+
+/* ------------------------------------------------------------------ *
+ * Sky behind the canvas — day (blue; the 3D clouds sit in front of it)
+ * / night (deep navy, drifting stars),
+ * crossfaded on [data-mood]; the 3D lights, clouds and sun/moon ease
+ * over the same ~1.2s in World3D / Sky.jsx.
+ * ------------------------------------------------------------------ */
+.lp-sky,
+.lp-sky-day,
+.lp-sky-night {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lp-sky {
+  overflow: hidden;
+}
+.lp-sky-day,
+.lp-sky-night {
+  transition: opacity 1.2s ease;
+}
+.lp-sky-day {
+  background: linear-gradient(180deg, #3f8fd8 0%, #6fb0e8 45%, #b6dcf5 100%);
+}
+.lp-sky-night {
+  opacity: 0;
+  background:
+    radial-gradient(ellipse at 50% 120%, #1b2440 0%, transparent 60%),
+    linear-gradient(180deg, #03050b 0%, #070b18 60%, #0d1428 100%);
+}
+/* two star layers, each a repeating tile drifting left at its own pace —
+   the nearer, brighter layer faster, so the sky has a little depth; the
+   far layer twinkles */
+.lp-sky-night::before,
+.lp-sky-night::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-repeat: repeat;
+  animation: lp-stars linear infinite;
+}
+.lp-sky-night::before {
+  background-image:
+    radial-gradient(1.5px 1.5px at 90px 120px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 310px 60px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 520px 240px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 760px 90px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 980px 300px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 1210px 150px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 1430px 40px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 1520px 380px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 200px 520px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 640px 610px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 1090px 560px, #fff 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 1380px 700px, #fff 50%, transparent 51%);
+  background-size: 1600px 1000px;
+  --tile: -1600px;
+  animation-duration: 140s;
+}
+.lp-sky-night::after {
+  background-image:
+    radial-gradient(1px 1px at 160px 300px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 420px 180px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 700px 420px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 930px 60px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 1180px 340px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 1500px 220px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 1860px 120px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 260px 760px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 820px 880px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 1340px 640px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 1700px 820px, #cfdcff 50%, transparent 51%),
+    radial-gradient(1px 1px at 2020px 480px, #cfdcff 50%, transparent 51%);
+  background-size: 2200px 1000px;
+  --tile: -2200px;
+  animation:
+    lp-stars 300s linear infinite,
+    lp-twinkle 5s ease-in-out infinite alternate;
+}
+@keyframes lp-stars {
+  from { background-position: 0 0; }
+  to { background-position: var(--tile) 0; }
+}
+@keyframes lp-twinkle {
+  from { opacity: 1; }
+  to { opacity: 0.45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-sky-night::before,
+  .lp-sky-night::after {
+    animation: none;
+  }
+}
+.lp-scroll[data-mood="night"] .lp-sky-day {
+  opacity: 0;
+}
+.lp-scroll[data-mood="night"] .lp-sky-night {
+  opacity: 1;
+}
+
+/* day: overlays sit on a light sky, so darken the faint chrome and lift
+   the title off the clouds */
+.lp-scroll[data-mood="day"] .lp-intro-name {
+  text-shadow: 0 2px 22px rgba(12, 40, 80, 0.45);
+}
+.lp-scroll[data-mood="day"] .lp-caps,
+.lp-scroll[data-mood="day"] .lp-hint,
+.lp-scroll[data-mood="day"] .lp-foot {
+  color: rgba(12, 32, 62, 0.78);
+}
+.lp-scroll[data-mood="day"] .lp-hint .mouse {
+  border-color: rgba(12, 32, 62, 0.6);
+}

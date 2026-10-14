@@ -1,7 +1,7 @@
 /* ==================================================================== *
  * Laptop scene — the whole landing page as one scroll-driven CSS-3D set.
  *
- * LaptopScene.jsx publishes per-beat progress as --b1..--b5 (each 0→1,
+ * LaptopScene.jsx publishes per-beat progress as --b0..--b4 (each 0→1,
  * staying at 1 once passed) plus --lid (hinge angle) and --app (which app
  * the screen shows: 0 terminal · 1 browser · 2 terminal). Project details
  * (opened from the projects listing) publish --dp (0→1 progress), --ds (the
@@ -289,14 +289,15 @@ body:has(.lp-scroll) {
   background: #05060a;
 }
 
-/* panel "boots" as the lid passes half-open */
+/* panel "boots" as the camera closes in — but rests dimmed (not black) so
+   the monitor reads as on from the room shot: idle terminal preview */
 .lp-screen::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 6;
   background: #000;
-  opacity: clamp(0, calc(1 - (var(--b1, 0) - 0.42) * 5), 1);
+  opacity: clamp(0, calc(0.35 - var(--b0, 0) * 0.9), 0.35);
   pointer-events: none;
 }
 
@@ -485,6 +486,7 @@ body:has(.lp-scroll) {
 }
 .lp-indent { padding-left: 3ch; }
 .lp-ascii { margin-top: 0.9rem; }
+.lp-aka { margin-top: 0.45rem; letter-spacing: 0.04em; }
 .lp-para {
   max-width: 66ch;
   line-height: 1.7;
@@ -1015,7 +1017,7 @@ body:has(.lp-scroll) {
   transform: translateX(-50%);
   text-align: center;
   white-space: nowrap;
-  opacity: clamp(0, calc(1 - var(--b1, 0) * 3.5), 1);
+  opacity: clamp(0, calc(1 - var(--b0, 0) * 3.5), 1);
   pointer-events: none;
 }
 .lp-intro-name {
@@ -1028,6 +1030,12 @@ body:has(.lp-scroll) {
   color: var(--muted);
   font-size: 0.85rem;
   letter-spacing: 0.14em;
+  /* translucent gray backing so the sub-line reads over the 3D scene */
+  background: rgba(16, 18, 24, 0.45);
+  padding: 0.35rem 0.9rem;
+  border-radius: 999px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 /* Split-flap cells: the hidden sizer holds the final glyph's width, the face
@@ -1082,6 +1090,7 @@ body:has(.lp-scroll) {
   opacity: 0;
   transition: opacity 0.4s ease;
 }
+.lp-scroll[data-beat="0"] .lp-cap[data-i="0"],
 .lp-scroll[data-beat="1"] .lp-cap[data-i="1"],
 .lp-scroll[data-beat="2"] .lp-cap[data-i="2"],
 .lp-scroll[data-beat="3"] .lp-cap[data-i="3"],
@@ -1141,7 +1150,7 @@ body:has(.lp-scroll) {
   font-size: 0.75rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: clamp(0, calc(1 - var(--b1, 0) * 5), 1);
+  opacity: clamp(0, calc(1 - var(--b0, 0) * 5), 1);
   pointer-events: none;
 }
 .lp-hint .mouse {
@@ -1218,7 +1227,7 @@ body:has(.lp-scroll) {
 @media (prefers-reduced-motion: reduce) {
   .lp-scroll {
     height: auto;
-    --b1: 1; --b2: 1; --b3: 1; --b4: 1; --b5: 1;
+    --b0: 1; --b1: 1; --b2: 1; --b3: 1; --b4: 1;
     --dp: 1; --ds: 0; --kb: 1;
     --lid: 0deg;
     --app: 0;

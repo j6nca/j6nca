@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useCallback, useEffect, useRef } from 'react'
-import LaptopKeyboard from './LaptopKeyboard'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { Canvas } from '@react-three/fiber'
+import World3D from './three/World3D'
 import TerminalApp from './TerminalApp'
 import WaypointApp from './WaypointApp'
 import GetbudApp from './GetbudApp'
@@ -10,41 +11,52 @@ import BrowserApp from './BrowserApp'
 import SplitFlap from '../SplitFlap'
 
 /*
- * The whole site is one scene: a laptop on a maple desk filling the viewport.
- * The story advances in 5 discrete "beats" — any scroll intent (wheel burst,
- * touch swipe, arrow key) tweens the scene to the next/previous beat. Each
- * beat's 0→1 progress is published as a CSS var (--b1..--b5) that all content
- * animation derives from, while this component lerps a CSS-3D camera between
- * poses (desk → screen) and slides the on-screen app strip.
+ * The whole site is one scene: a room — standing desk, server rack,
+ * ultrawide on an arm, the usual peripheral sprawl — with a laptop on the
+ * desk filling the viewport once the camera closes in. The room, the laptop
+ * and the camera are three.js (World3D); the laptop screen's content is
+ * real DOM attached in 3D, so every app keeps working unchanged.
  *
- *   beat 1   lid opens, whoami + about types into the terminal
- *   beat 2   cat ~/projects.md
- *   beat 3   cat ~/work_experience.md
- *   beat 4   swipe to the browser, contribution graph decodes
- *   beat 5   swipe back, motd — contact, resume, curl
+ * The story advances in 5 discrete "beats" — any scroll intent (wheel
+ * burst, touch swipe, arrow key) tweens the scene to the next/previous
+ * beat. Each beat's 0→1 progress is published as a CSS var (--b0..--b4)
+ * that all content animation derives from; World3D reads the same state
+ * through `subscribe` and drives the camera, the lid hinge and the rack
+ * LEDs from it.
+ *
+ *   beat 0   dolly from the room's wide shot into the monitor while
+ *            whoami + about types into the idle terminal
+ *   beat 1   cat ~/projects.md
+ *   beat 2   cat ~/work_experience.md
+ *   beat 3   swipe to the browser, contribution graph decodes
+ *   beat 4   swipe back, motd — contact, resume, curl
+ *
+ * Resting on raw = n shows caption n (00 room … 05 contact).
  *
  * The screen's app strip is laid out in story order — terminal (whoami /
  * projects / work) · contrib browser · terminal (motd) — so every screen
  * change is a single swipe to the left; --app is the strip index.
  *
- * Project visualizations live off the main path. Clicking a project row that
- * has one opens a "detail": the screen slides left to reveal the visual pane
- * (waypoint · getbud · obsidian · kube-cats terminal) parked to the right of
- * the strip, or — for keyboards — the camera dives to the deck while
- * k-e-y-b-o-a-r-d-s ↵ types itself. The detail's 0→1 progress is published
- * as --dp (raw), --ds (screen slide) and --kb (keyboard dive); the pane id
- * is mirrored on [data-detail]. A "return to projects" action or any scroll
- * intent closes it and the story resumes on the projects beat.
+ * Project visualizations live off the main path. Clicking a project row
+ * that has one opens a "detail": the screen slides left to reveal the
+ * visual pane (waypoint · getbud · obsidian · kube-cats terminal) parked
+ * to the right of the strip, or — for keyboards — the camera dives to the
+ * deck while k-e-y-b-o-a-r-d-s ↵ types itself. The detail's 0→1 progress
+ * is published as --dp (raw), --ds (screen slide) and --kb (keyboard
+ * dive); the pane id is mirrored on [data-detail]. A "return to projects"
+ * action or any scroll intent closes it and the story resumes on the
+ * projects beat.
+ *
+ * prefers-reduced-motion swaps the canvas for a flat stack of the same
+ * app panes, fully revealed.
  */
 
 const BANDS = 5
-const SCREEN_W = 800
-const SCREEN_H = 500
-const LID_H = 560
-const BASE_D = 560
-const LAP_W = 840
+// opening-shot framing: a distance multiplier, 0.8 = 20% closer than wide
+const DEFAULT_ZOOM = 0.8
 
 const CAPTIONS = [
+  '00 — the room',
   '01 — hello',
   '02 — projects',
   '03 — experience',
@@ -62,55 +74,74 @@ const DETAILS = {
 }
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
-const seg = (v, a, b) => clamp((v - a) / (b - a))
 const smooth = (u) => {
   u = clamp(u)
   return u * u * (3 - 2 * u)
 }
-const mix = (a, b, u) => a + (b - a) * u
-const mixPose = (A, B, u) =>
-  u <= 0
-    ? A
-    : u >= 1
-      ? B
-      : {
-          tx: mix(A.tx, B.tx, u),
-          ty: mix(A.ty, B.ty, u),
-          s: mix(A.s, B.s, u),
-          rx: mix(A.rx, B.rx, u),
-          ry: mix(A.ry, B.ry, u),
-        }
+const seg = (v, a, b) => clamp((v - a) / (b - a))
+
+// Night outside 7am–6pm local time. Safe to read the clock during the first
+// render: the scene only mounts client-side (SiteSwitch swaps it in after
+// mount), so there's no server render to mismatch, and starting in the
+// right mood means World3D's lights and the CSS sky open on it directly
+// rather than fading over from day.
+const DAY_START = 7
+const NIGHT_START = 18
+const isNightNow = () => {
+  const h = new Date().getHours()
+  return h < DAY_START || h >= NIGHT_START
+}
+
+// Backdrop behind the (transparent) canvas: the day/night sky gradient
+// (stars by night), crossfaded by [data-mood] in three.css. The clouds,
+// sun and moon are 3D (three/Sky.jsx).
+const Sky = () => (
+  <div className="lp-sky" aria-hidden="true">
+    <div className="lp-sky-day" />
+    <div className="lp-sky-night" />
+  </div>
+)
 
 // `mobileHref`: when the scene was forced onto a phone-sized viewport
 // (?desktop), a link back to the plain mobile site.
 const LaptopScene = ({ data, contributions, mobileHref }) => {
   const rootRef = useRef(null)
-  const worldRef = useRef(null)
-  const rigRef = useRef(null)
   const subsRef = useRef(new Set())
   // imperative detail navigation, populated by the scene effect
   const navRef = useRef(null)
+  const [reduced, setReduced] = useState(false)
+  // day / night — starts from the visitor's local clock (see isNightNow),
+  // then the floor lamp in the room toggles it; the CSS sky reads
+  // [data-mood] and World3D eases its lights toward it
+  const [night, setNight] = useState(isNightNow)
+  const toggleMood = useCallback(() => setNight((n) => !n), [])
 
-  // Children (nebula canvas, contribution decode, terminal pages) register a
-  // callback and get the frame state after each scroll update — one driver,
-  // deterministic ordering.
+  // Children (World3D camera, nebula canvas, contribution decode, terminal
+  // pages) register a callback and get the frame state after each scroll
+  // update — one driver, deterministic ordering. Canvas children mount on
+  // R3F's own schedule, which can land *after* the mount-time render(0), so
+  // a late subscriber is immediately caught up with the latest state.
+  const latestRef = useRef(null)
   const subscribe = useCallback((fn) => {
     subsRef.current.add(fn)
+    if (latestRef.current) fn(latestRef.current)
     return () => subsRef.current.delete(fn)
   }, [])
 
   const openDetail = useCallback((id) => navRef.current?.open(id), [])
   const closeDetail = useCallback(() => navRef.current?.close(), [])
+  // opening-shot pan/zoom state (drag, horizontal trackpad swipe, pinch
+  // or +/- keys), clamped to sane limits
+  const panRef = useRef({ yaw: 0, target: 0, zoom: DEFAULT_ZOOM, zoomTarget: DEFAULT_ZOOM })
 
   useEffect(() => {
     const root = rootRef.current
-    const world = worldRef.current
-    const rig = rigRef.current
-    if (!root || !world || !rig) return
+    if (!root) return
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      // Static fallback: CSS flattens the scene; tell subscribers to render
-      // their finished states once.
+      // Static fallback: the apps render as a flat stack; tell subscribers
+      // to render their finished states once.
+      setReduced(true)
       const state = {
         raw: BANDS,
         t: 1,
@@ -124,44 +155,32 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     }
 
     let raf = 0
-    let vw = window.innerWidth
-    let vh = window.innerHeight
 
-    // Camera poses. The world transform is translate+scale (outer), the rig
-    // is rotateX/rotateY (inner), both relative to an anchor at the hinge.
-    const poses = () => {
-      const anchorY = vh * 0.58
-      const cy = vh * 0.5 - anchorY
-      const sScreen = Math.min((vw * 0.94) / SCREEN_W, (vh * 0.86) / SCREEN_H)
-      const sDesk = Math.min(vw / 1200, vh / 1150, 0.72)
-      const sKeys = Math.min((vw * 0.86) / LAP_W, (vh * 0.95) / BASE_D)
-      // negative pitch = camera above the desk looking down at it
-      const rxDesk = -26
-      const rxKeys = -64
+    // Discrete beat stepper: raw tweens between integers; render() derives
+    // everything else exactly as the scroll-driven version did. Time is
+    // accumulated with a per-frame cap: a late first rAF after a gesture
+    // (browser still settling after load) would otherwise skip the tween
+    // ahead and read as a jump cut.
+    const BEAT_MS = 1500
+    const easeBeat = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2)
+
+    // shared tween clock helpers (cap dt so stalls don't skip the animation)
+    const makeClock = (ms) => {
+      let elapsed = 0
+      let last = null
       return {
-        desk: {
-          tx: 0,
-          ty: cy - Math.sin((-rxDesk * Math.PI) / 180) * (BASE_D / 2) * sDesk + vh * 0.03,
-          s: sDesk,
-          rx: rxDesk,
-          ry: -18,
+        reset() {
+          elapsed = 0
+          last = null
         },
-        screen: { tx: 0, ty: cy + (LID_H / 2 + 6) * sScreen, s: sScreen, rx: 0, ry: 0 },
-        keys: {
-          tx: 0,
-          ty: cy - Math.sin((-rxKeys * Math.PI) / 180) * (BASE_D / 2) * sKeys,
-          s: sKeys,
-          rx: rxKeys,
-          ry: 0,
+        step(now) {
+          const dt = Math.min(now - (last ?? now), 48)
+          last = now
+          elapsed = Math.min(ms, elapsed + dt)
+          return elapsed / ms
         },
       }
     }
-    let P = poses()
-
-    // Discrete beat stepper: raw tweens between integers; render() derives
-    // everything else exactly as the scroll-driven version did.
-    const BEAT_MS = 1500
-    const easeBeat = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2)
 
     let raw = 0
     let from = 0
@@ -198,28 +217,22 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
       el.style.setProperty(name, val)
     }
 
-    const applyCam = (c) => {
-      world.style.transform = `translate3d(${c.tx.toFixed(1)}px, ${c.ty.toFixed(1)}px, 0) scale3d(${c.s.toFixed(4)}, ${c.s.toFixed(4)}, ${c.s.toFixed(4)})`
-      rig.style.transform = `rotateX(${c.rx.toFixed(2)}deg) rotateY(${c.ry.toFixed(2)}deg)`
-    }
-
     const render = (r) => {
-      const b = [0]
-      for (let i = 1; i <= BANDS; i++) {
-        b[i] = clamp(r - (i - 1))
+      // beat 0 = the room→desk dolly (+ whoami); beats 1..4 ride on top of it
+      const b = [clamp(r)]
+      for (let i = 1; i <= BANDS - 1; i++) {
+        b[i] = clamp(r - i)
+      }
+      for (let i = 0; i < BANDS; i++) {
         setVar(root, `--b${i}`, b[i].toFixed(4))
       }
       // top progress bar (the CSS scroll-timeline can't see beat progress)
       setVar(document.documentElement, '--scene-p', (r / BANDS).toFixed(4))
 
-      // lid opens through the first half of beat 1 (closed -90° → open +8°)
-      const lid = smooth(seg(b[1], 0.05, 0.55))
-      setVar(root, '--lid', `${(-90 + lid * 98).toFixed(2)}deg`)
-
       // app strip index — story order, every transition swipes left by one
       const app =
-        smooth(seg(b[4], 0.02, 0.3)) + // → contribution browser
-        smooth(seg(b[5], 0, 0.26)) // → terminal (motd)
+        smooth(seg(b[3], 0.02, 0.3)) + // → contribution browser
+        smooth(seg(b[4], 0, 0.26)) // → terminal (motd)
       setVar(root, '--app', app.toFixed(4))
 
       // project detail: screen slide for the pane details, camera dive for
@@ -230,22 +243,18 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
       setVar(root, '--ds', ds.toFixed(4))
       setVar(root, '--kb', kb.toFixed(4))
 
-      // camera
-      let c = P.desk
-      c = mixPose(c, P.screen, smooth(seg(b[1], 0.25, 0.9)))
-      c = mixPose(c, P.keys, smooth(seg(kb, 0.04, 0.46)))
-      applyCam(c)
-
-      const beat = Math.min(BANDS, Math.floor(r + 0.5))
+      const beat = Math.min(BANDS, Math.round(r))
       if (root.dataset.beat !== String(beat)) root.dataset.beat = String(beat)
 
       const state = { raw: r, t: r / BANDS, bands: b, reduced: false, detail, dp }
+      latestRef.current = state
       subsRef.current.forEach((fn) => fn(state))
     }
 
+    const beatClock = makeClock(BEAT_MS)
     const tick = (now) => {
       raf = 0
-      const u = Math.min(1, (now - animStart) / BEAT_MS)
+      const u = beatClock.step(now)
       raw = from + (target - from) * easeBeat(u)
       render(raw)
       if (u < 1) {
@@ -257,11 +266,12 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
 
     // Detail tween — same easing as the beats, on its own clock. When a
     // close lands, the pane id is dropped so its CSS animations reset and a
-    // revisit replays from the start.
+    // revisit replays from the beginning.
     let dRaf = 0
+    const detailClock = makeClock(DETAIL_MS)
     const dTick = (now) => {
       dRaf = 0
-      const u = Math.min(1, (now - dStart) / DETAIL_MS)
+      const u = detailClock.step(now)
       dp = dFrom + (dTarget - dFrom) * easeBeat(u)
       if (u < 1) {
         dRaf = requestAnimationFrame(dTick)
@@ -279,6 +289,7 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
       dTarget = to
       dAnimating = true
       dStart = performance.now()
+      detailClock.reset()
       if (dRaf) cancelAnimationFrame(dRaf)
       dRaf = requestAnimationFrame(dTick)
     }
@@ -299,19 +310,23 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     }
     navRef.current = { open, close }
 
-    // End of the story: power the screen down, close the lid, dolly back to
-    // the opening shot, then reset to beat 0 so the journey can replay.
-    const RESET_MS = 2200
+    // End of the story: the camera pulls back over the desk and out to the
+    // room's opening shot (World3D follows --b0 down), then the story
+    // resets to beat 0 so the journey can replay.
+    const RESET_MS = 2600
+    const resetClock = makeClock(RESET_MS)
     const resetTick = (now) => {
       raf = 0
-      const u = Math.min(1, (now - animStart) / RESET_MS)
+      const u = resetClock.step(now)
       const e = easeBeat(u)
-      applyCam(mixPose(P.screen, P.desk, e))
-      setVar(root, '--lid', `${(-90 + (1 - e) * 98).toFixed(2)}deg`)
-      // --b1 gates the panel-boot overlay + intro title: screen goes dark
-      // (and the title fades back in) over the first stretch of the close
-      setVar(root, '--b1', (1 - seg(u, 0, 0.4)).toFixed(4))
+      // --b0 drives the camera, the panel-boot overlay and the intro title:
+      // the screen dims and the title fades back in as the camera pulls out
+      const b0 = 1 - seg(u, 0.1, 0.85)
+      setVar(root, '--b0', b0.toFixed(4))
       setVar(document.documentElement, '--scene-p', (1 - e).toFixed(4))
+      // subscribers re-derive the camera from the eased vars
+      const b = Array.from({ length: BANDS }, (_, i) => (i === 0 ? b0 : 0))
+      subsRef.current.forEach((fn) => fn({ raw: 0, t: 0, bands: b, reduced: false, detail: null, dp: 0 }))
       if (u < 1) {
         raf = requestAnimationFrame(resetTick)
       } else {
@@ -340,17 +355,26 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
         resetting = true
         root.dataset.beat = '0'
         animStart = performance.now()
+        resetClock.reset()
         if (raf) cancelAnimationFrame(raf)
         raf = requestAnimationFrame(resetTick)
         return
       }
       const next = clamp(base + dir, 0, BANDS)
-      if (next === base && !animating) return
+      if (next === base && !animating) {
+        // scrolling "back" at the very start re-centres the opening shot
+        if (dir < 0 && base === 0) {
+          panRef.current.target = 0
+          panRef.current.zoomTarget = DEFAULT_ZOOM
+        }
+        return
+      }
       if (animating && next === target) return
       from = raw
       target = next
       animating = true
       animStart = performance.now()
+      beatClock.reset()
       if (raf) cancelAnimationFrame(raf)
       raf = requestAnimationFrame(tick)
     }
@@ -366,6 +390,17 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     const STEP_REFRACTORY = 250
     const onWheel = (e) => {
       e.preventDefault()
+      // pinch-gesture (ctrl/cmd + wheel) zooms the opening shot
+      if ((e.ctrlKey || e.metaKey) && raw < 0.5) {
+        panRef.current.zoomTarget = clamp(panRef.current.zoomTarget * Math.exp(e.deltaY * 0.002), 0.45, 2.4)
+        return
+      }
+      // horizontal trackpad swipes pan the opening shot instead of
+      // advancing the story — only while the camera is still there
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && raw < 0.5) {
+        panRef.current.target = clamp(panRef.current.target - e.deltaX * 0.12, -60, 60)
+        return
+      }
       const now = performance.now()
       const gap = now - lastWheelT
       lastWheelT = now
@@ -402,6 +437,13 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
 
     const onKey = (e) => {
       if (e.metaKey || e.ctrlKey || e.altKey || e.repeat) return
+      // +/− zoom the opening shot (with the pan)
+      if (raw < 0.5 && (e.key === '+' || e.key === '=' || e.key === '-' || e.key === '_')) {
+        const dir = e.key === '+' || e.key === '=' ? 1 : -1
+        // zoom is a distance multiplier: smaller = closer
+        panRef.current.zoomTarget = clamp(panRef.current.zoomTarget * Math.exp(-dir * 0.18), 0.45, 2.4)
+        return
+      }
       if (['ArrowDown', 'PageDown', ' ', 'j'].includes(e.key)) {
         e.preventDefault()
         step(1)
@@ -413,102 +455,91 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
       }
     }
 
-    const onResize = () => {
-      vw = window.innerWidth
-      vh = window.innerHeight
-      P = poses()
-      if (!animating && !dAnimating) render(raw)
-    }
-
     render(0)
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchmove', onTouchMove, { passive: false })
     window.addEventListener('keydown', onKey)
-    window.addEventListener('resize', onResize)
     return () => {
       navRef.current = null
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('touchstart', onTouchStart)
       window.removeEventListener('touchmove', onTouchMove)
       window.removeEventListener('keydown', onKey)
-      window.removeEventListener('resize', onResize)
       if (raf) cancelAnimationFrame(raf)
       if (dRaf) cancelAnimationFrame(dRaf)
     }
   }, [])
 
+  const screenApps = (
+    <>
+      <div className="lp-apps">
+        <TerminalApp
+          basics={data.basics}
+          projects={data.projects}
+          work={data.work}
+          subscribe={subscribe}
+          pages={[0, 2, 3]}
+          onOpen={openDetail}
+        />
+        <BrowserApp data={contributions} subscribe={subscribe} />
+        <TerminalApp basics={data.basics} subscribe={subscribe} pages={[4]} />
+      </div>
+
+      {/* project visuals, parked one screen to the right */}
+      <div className="lp-detail">
+        <div className="lp-detail-pane" data-d="waypoint">
+          <WaypointApp onReturn={closeDetail} />
+        </div>
+        <div className="lp-detail-pane" data-d="getbud">
+          <GetbudApp onReturn={closeDetail} />
+        </div>
+        <div className="lp-detail-pane" data-d="nebula">
+          <ObsidianApp subscribe={subscribe} onReturn={closeDetail} />
+        </div>
+        <div className="lp-detail-pane" data-d="kube-cats">
+          <TerminalApp basics={data.basics} subscribe={subscribe} pages={[1]} onReturn={closeDetail} />
+        </div>
+      </div>
+    </>
+  )
+
   return (
-    <section className="lp-scroll" ref={rootRef} data-beat="0" aria-label="Jonathan Ng — portfolio">
+    <section
+      className="lp-scroll"
+      ref={rootRef}
+      data-beat="0"
+      data-mood={night ? 'night' : 'day'}
+      aria-label="Jonathan Ng — portfolio"
+    >
       <h1 className="sr-only">{data.basics.name} — {data.basics.label}</h1>
 
       <div className="lp-stage">
-        <div className="lp-room" aria-hidden="true" />
-
-        <div className="lp-anchor">
-          <div className="lp-world" ref={worldRef}>
-            <div className="lp-rig" ref={rigRef}>
-              <div className="lp-desk" aria-hidden="true">
-                <div className="lp-shadow" />
-              </div>
-
-              <div className="lp-laptop">
-                <div className="lp-base">
-                  <i className="lp-wall lp-wall-l" aria-hidden="true" />
-                  <i className="lp-wall lp-wall-r" aria-hidden="true" />
-                  <div className="lp-deck">
-                    <LaptopKeyboard />
-                    <div className="lp-trackpad" aria-hidden="true" />
-                  </div>
-                </div>
-
-                <div className="lp-lid">
-                  <div className="lp-lid-back" aria-hidden="true">
-                    <span className="lp-logo">j6n</span>
-                  </div>
-                  <div className="lp-lid-front">
-                    <div className="lp-screen">
-                      <div className="lp-apps">
-                        <TerminalApp
-                          basics={data.basics}
-                          projects={data.projects}
-                          work={data.work}
-                          subscribe={subscribe}
-                          pages={[0, 2, 3]}
-                          onOpen={openDetail}
-                        />
-                        <BrowserApp data={contributions} subscribe={subscribe} />
-                        <TerminalApp basics={data.basics} subscribe={subscribe} pages={[4]} />
-                      </div>
-
-                      {/* project visuals, parked one screen to the right */}
-                      <div className="lp-detail">
-                        <div className="lp-detail-pane" data-d="waypoint">
-                          <WaypointApp onReturn={closeDetail} />
-                        </div>
-                        <div className="lp-detail-pane" data-d="getbud">
-                          <GetbudApp onReturn={closeDetail} />
-                        </div>
-                        <div className="lp-detail-pane" data-d="nebula">
-                          <ObsidianApp subscribe={subscribe} onReturn={closeDetail} />
-                        </div>
-                        <div className="lp-detail-pane" data-d="kube-cats">
-                          <TerminalApp
-                            basics={data.basics}
-                            subscribe={subscribe}
-                            pages={[1]}
-                            onReturn={closeDetail}
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="lp-chin" aria-hidden="true">j6n</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {!reduced && <Sky />}
+        {reduced ? (
+          <div className="lp-static">
+            <div className="lp-screen">{screenApps}</div>
           </div>
-        </div>
+        ) : (
+          <Canvas
+            className="lp-canvas"
+            shadows
+            dpr={[1, 2]}
+            gl={{ antialias: true, toneMappingExposure: 1.25 }}
+            camera={{ fov: 42, near: 20, far: 20000, position: [690, 1886, 2974] }}
+          >
+            <World3D
+              subscribe={subscribe}
+              panRef={panRef}
+              data={data}
+              contributions={contributions}
+              onOpen={openDetail}
+              onClose={closeDetail}
+              night={night}
+              onToggleMood={toggleMood}
+            />
+          </Canvas>
+        )}
 
         {/* screen-space overlays */}
         <div className="lp-intro" aria-hidden="true">
@@ -522,7 +553,7 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
 
         <div className="lp-caps mono" aria-hidden="true">
           {CAPTIONS.map((c, i) => (
-            <span className="lp-cap" data-i={i + 1} key={c}>
+            <span className="lp-cap" data-i={i} key={c}>
               ✦ {c}
             </span>
           ))}

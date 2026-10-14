@@ -4,7 +4,7 @@ import React, { useEffect, useRef } from 'react'
 import ContribGraph from '../ContribGraph'
 
 // Browser window showing the contribution graph; the matrix-rain decode from
-// the live site's Contributions component, re-driven by the scene's beat 4.
+// the live site's Contributions component, re-driven by the scene's beat 3.
 const BrowserApp = ({ data, subscribe }) => {
   const ref = useRef(null)
 
@@ -67,11 +67,11 @@ const BrowserApp = ({ data, subscribe }) => {
         })
         return
       }
-      visible = bands[4] > 0.02 && bands[5] < 0.6
+      visible = bands[3] > 0.02 && bands[4] < 0.6
       // start the sweep once the swipe-in has mostly landed
-      if (bands[4] >= 0.3 && !started) started = performance.now()
+      if (bands[3] >= 0.3 && !started) started = performance.now()
       // scrolled back out of the beat: reset so a revisit replays the decode
-      if (bands[4] < 0.05 && started) {
+      if (bands[3] < 0.05 && started) {
         started = 0
         resolvedAll = false
         paint()
