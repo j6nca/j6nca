@@ -25,10 +25,10 @@ const mulberry32 = (seed) => () => {
 // (…2.12 instead of …2.0) so a finished scene stays up while idle and only
 // pushes away once the next beat's tween is underway.
 const PAGE_RANGES = [
-  [0, 1.12], // whoami + about (beat 1)
+  [0, 2.12], // whoami + about — visible (idle, untyped) from the room shot
   null, // kubectl get po (+ cats) — kube-cats detail, always on
-  [1.12, 2.12], // cat ~/projects.md (beat 2)
-  [2.12, 99], // cat ~/work_experience.md (beat 3)
+  [2.12, 3.12], // cat ~/projects.md (beat 2)
+  [3.12, 99], // cat ~/work_experience.md (beat 3)
   [0, 99], // motd — own pane, visible only on beat 5
 ]
 
@@ -419,7 +419,7 @@ const TerminalApp = ({
             <span className="lp-dollar">$</span> curl https://j6n.ca/resume.json
           </L>
           <L at={0.76} className="lp-pre lp-indent">
-            <span className="lp-faint">elsewhere</span>{' '}
+            <span className="lp-faint">socials</span>{' '}
             <a href="https://github.com/j6nca" target="_blank" rel="noreferrer">github/j6nca</a>
             {' · '}
             <a href="https://www.linkedin.com/in/j6n" target="_blank" rel="noreferrer">linkedin/j6n</a>
