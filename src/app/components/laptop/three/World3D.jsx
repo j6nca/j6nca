@@ -1,12 +1,23 @@
-import React, { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Html, useGLTF } from '@react-three/drei'
+import { Html, RoundedBox, useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 import TerminalApp from '../TerminalApp'
 import BrowserApp from '../BrowserApp'
 import WaypointApp from '../WaypointApp'
 import GetbudApp from '../GetbudApp'
 import ObsidianApp from '../ObsidianApp'
+import StandingDesk from './props/StandingDesk'
+import OfficeChair from './props/OfficeChair'
+import FloorLamp from './props/FloorLamp'
+import HeadlessGuitar from './props/HeadlessGuitar'
+import LoungeChair from './props/LoungeChair'
+import WindowWall from './props/WindowWall'
+import FlipClock from './props/FlipClock'
+import AudioInterface from './props/AudioInterface'
+import Cat from './props/Cat'
+import Headphones from './props/Headphones'
+import { Clouds, SunMoon } from './Sky'
 
 /*
  * The three.js world behind the story: the room (standing desk, rack,
@@ -14,11 +25,12 @@ import ObsidianApp from '../ObsidianApp'
  * of the old set, y-up, z toward the viewer, the laptop hinge at the origin
  * and the desk surface at y=0. The floor sits at y=-960 (desk height).
  *
- * Furniture props are CC0 placeholder models from Kenney's furniture kit
+ * The desk, chair, floor lamp, guitar and lounge chair are procedural, modelled from
+ * reference photos (see ./props). The keyboard, mouse and speakers
+ * are still CC0 placeholder models from Kenney's furniture kit
  * (https://kenney.nl, mirrored at github.com/shorepine/kenney), fetched
- * from /public/models and scaled ×2500 to match the laptop's proportions
- * — swap the .glb files there for final models later. The rack, DAC,
- * headphone stand, mousepad and the laptop itself are procedural.
+ * from /public/models and scaled ×2500. The rack and
+ * mousepad are procedural too.
  *
  * LaptopScene still owns the beat stepper and publishes frame state through
  * `subscribe`; World3D stores the latest state in a ref and drives the
@@ -50,8 +62,8 @@ const POSE_KEYS = { look: [0, 30, -1100], dir: [0, -0.88, -0.475] }
 const viewH = (d) => 2 * d * Math.tan((FOV / 2) * DEG)
 
 /* ------------------------------------------------------------------ *
- * Procedural textures (canvas → CanvasTexture): monitor
- * wallpaper — no binary assets to ship.
+ * Textures: the wood floor is procedural (canvas → CanvasTexture); the
+ * monitor wallpaper is an image from /public/textures.
  * ------------------------------------------------------------------ */
 const makeWoodFloor = () => {
   const c = document.createElement('canvas')
@@ -93,155 +105,102 @@ const makeWoodFloor = () => {
   return t
 }
 
-const makeWallpaper = () => {
-  const c = document.createElement('canvas')
-  c.width = 1024
-  c.height = 420
-  const g = c.getContext('2d')
-  const bg = g.createLinearGradient(0, 0, 0, 420)
-  bg.addColorStop(0, '#0a0e18')
-  bg.addColorStop(1, '#05070c')
-  g.fillStyle = bg
-  g.fillRect(0, 0, 1024, 420)
-  // horizon line + soft glow
-  const glow = g.createRadialGradient(512, 470, 40, 512, 470, 420)
-  glow.addColorStop(0, 'rgba(66,165,245,0.22)')
-  glow.addColorStop(1, 'rgba(66,165,245,0)')
-  g.fillStyle = glow
-  g.fillRect(0, 0, 1024, 420)
-  g.fillStyle = 'rgba(120,180,255,0.25)'
-  g.fillRect(0, 231, 1024, 2)
-  const t = new THREE.CanvasTexture(c)
+// Night desert dunes, cropped to the ultrawide's 2.44:1 panel. Loaded
+// without suspending, so the scene doesn't wait on it — the panel shows
+// its dark base colour for a moment, then the image fills in.
+const WALLPAPER_URL = '/textures/wallpaper-desert-night.jpg'
+const loadWallpaper = () => {
+  const t = new THREE.TextureLoader().load(WALLPAPER_URL)
   t.colorSpace = THREE.SRGBColorSpace
+  t.anisotropy = 4
   return t
 }
 
 /* ------------------------------------------------------------------ *
  * Kenney placeholder models
  * ------------------------------------------------------------------ */
-const Kenney = ({ name, position, rotation, color, sx = K, sy = K, sz = K }) => {
+// `dark`: a black finish that keeps each part's relative shade (cones vs
+// cabinet, keys vs case) instead of flattening everything to one colour
+// (in sRGB: in three's linear working space a "dark" lightness still
+// displays as mid-grey)
+const darken = (c) => {
+  const hsl = {}
+  c.getHSL(hsl, THREE.SRGBColorSpace)
+  c.setHSL(hsl.h, hsl.s * 0.25, 0.05 + hsl.l * 0.1, THREE.SRGBColorSpace)
+}
+
+const useKenney = (name, color, dark) => {
   const { scene } = useGLTF(`/models/${name}.glb`)
-  const obj = useMemo(() => {
+  return useMemo(() => {
     const o = scene.clone(true)
     o.traverse((m) => {
       if (m.isMesh) {
         m.castShadow = true
         m.receiveShadow = true
-        if (color) {
+        if (color || dark) {
           m.material = m.material.clone()
-          m.material.color.set(color)
+          if (color) m.material.color.set(color)
+          if (dark) darken(m.material.color)
         }
       }
     })
     return o
-  }, [scene, color])
+  }, [scene, color, dark])
+}
+
+const Kenney = ({ name, position, rotation, color, dark, sx = K, sy = K, sz = K }) => {
+  const obj = useKenney(name, color, dark)
   return <primitive object={obj} position={position} rotation={rotation} scale={[sx, sy, sz]} />
 }
 
-;['computerKeyboard', 'computerMouse', 'lampRoundFloor', 'plantSmall2', 'chairDesk', 'speakerSmall'].forEach((n) => useGLTF.preload(`/models/${n}.glb`))
+/* Speaker on a wedge riser that tilts it back so the drivers aim up by
+ * `tilt`. The model's own bounds (measured once) size the riser and find
+ * its footprint, so `position` stays the model origin it always was. */
+const RISER_BACK = 34 // riser height at the back edge
+const Speaker = ({ position, tilt = 15 * DEG }) => {
+  const obj = useKenney('speakerSmall', null, true)
+  const fit = useMemo(() => {
+    obj.scale.setScalar(K)
+    obj.updateMatrixWorld(true)
+    const box = new THREE.Box3().setFromObject(obj)
+    obj.scale.setScalar(1)
+    const size = box.getSize(new THREE.Vector3())
+    // wedge riser in side profile (z, y): low at the back, high at the front
+    const D = size.z
+    const run = D * Math.cos(tilt)
+    const s = new THREE.Shape([
+      new THREE.Vector2(-D / 2, 0),
+      new THREE.Vector2(-D / 2 + run + 10, 0),
+      new THREE.Vector2(-D / 2 + run + 10, RISER_BACK + (run + 10) * Math.tan(tilt)),
+      new THREE.Vector2(-D / 2, RISER_BACK),
+    ])
+    const riser = new THREE.ExtrudeGeometry(s, { depth: size.x + 20, bevelEnabled: false })
+    riser.translate(0, 0, -(size.x + 20) / 2)
+    riser.rotateY(-Math.PI / 2) // profile z → world z, extrusion → x
+    return { box, size, riser }
+  }, [obj, tilt])
+  const { box, size, riser } = fit
+  const cx = (box.min.x + box.max.x) / 2
+  const cz = (box.min.z + box.max.z) / 2
+  return (
+    <group position={[position[0] + cx, position[1], position[2] + cz]}>
+      <mesh geometry={riser} castShadow receiveShadow>
+        <meshStandardMaterial color="#121316" roughness={0.6} metalness={0.2} />
+      </mesh>
+      {/* pivot on the riser's back top edge; the speaker leans back by tilt */}
+      <group position={[0, RISER_BACK, -size.z / 2]} rotation={[-tilt, 0, 0]}>
+        <primitive object={obj} scale={[K, K, K]} position={[-cx, -box.min.y, -box.min.z]} />
+      </group>
+    </group>
+  )
+}
+
+;['computerKeyboard', 'computerMouse', 'speakerSmall'].forEach((n) => useGLTF.preload(`/models/${n}.glb`))
 
 /* the ultrawide's display area: the DOM screen (800×500, bezel-free) is
    scaled to fill the display height, letterboxed on the wallpaper */
-const DISPLAY = { cx: 0, cy: 480, frontZ: -1739, w: 1560, h: 640 }
+const DISPLAY = { cx: 0, cy: 580, frontZ: -1739, w: 1560, h: 640 }
 const HTML_SCALE = DISPLAY.h / 500
-
-/* ------------------------------------------------------------------ *
- * Rack tablet: a small live uptime display mounted on the rack's door
- * ------------------------------------------------------------------ */
-const pad = (n, w = 2) => String(n).padStart(w, '0')
-
-const RackTablet = () => {
-  const [up, setUp] = useState(null)
-  useEffect(() => {
-    // uptime since Sept 1998 (day 1 — adjust if you want an exact date)
-    const fmt = () => {
-      const now = new Date()
-      const months = now.getFullYear() * 12 + now.getMonth() - (1998 * 12 + 8)
-      const y = Math.floor(months / 12)
-      const mo = months % 12
-      const d = now.getDate() - 1
-      const h = now.getHours()
-      const m = now.getMinutes()
-      const s = now.getSeconds()
-      return `${y}y ${pad(mo)}m ${pad(d)}d ${pad(h)}:${pad(m)}:${pad(s)}`
-    }
-    setUp(fmt())
-    const iv = setInterval(() => setUp(fmt()), 1000)
-    return () => clearInterval(iv)
-  }, [])
-  const prismGeo = useMemo(() => {
-    // triangular cross-section in (z, y): front face 260 tall at z=0,
-    // back edge at z=-150 mid-height, extruded 840 along x (then centred
-    // along the extrusion axis so it sits directly behind the display)
-    const shape = new THREE.Shape([
-      new THREE.Vector2(0, -130),
-      new THREE.Vector2(0, 130),
-      new THREE.Vector2(-150, 0),
-    ])
-    const geo = new THREE.ExtrudeGeometry(shape, { depth: 840, bevelEnabled: false })
-    geo.translate(0, 0, -420) // extrusion runs 0..840 in local z; centre it
-    return geo
-  }, [])
-
-  return (
-    <group position={[-2050, 632, -1080]} rotation={[-10 * DEG, 0, 0]}>
-      {/* closed triangular-prism body — the display is its front face */}
-      <mesh geometry={prismGeo} rotation={[0, -Math.PI / 2, 0]} castShadow>
-        <meshStandardMaterial color="#14171c" roughness={0.5} metalness={0.35} />
-      </mesh>
-      <Html transform distanceFactor={400} zIndexRange={[4, 0]}>
-        <div className="rp-tablet mono">
-          <div className="rp-tablet-top">
-            <span className="rp-tablet-h">uptime</span>
-            <span className="rp-tablet-d">since 1998-09</span>
-          </div>
-          <span className="rp-tablet-t">{up ?? '…'}</span>
-        </div>
-      </Html>
-    </group>
-  )
-}
-
-/* ------------------------------------------------------------------ *
- * Corner floor lamp — click it to toggle the light
- * ------------------------------------------------------------------ */
-const Lamp = () => {
-  // imperative toggle: R3F prop-diffing through suspense boundaries proved
-  // unreliable here in dev, so refs flip the light + bulb directly
-  const lightRef = useRef(null)
-  const bulbRef = useRef(null)
-  const on = useRef(true)
-  const toggle = (e) => {
-    e.stopPropagation()
-    on.current = !on.current
-    if (lightRef.current) lightRef.current.visible = on.current
-    if (bulbRef.current) {
-      bulbRef.current.material.color.set(on.current ? '#ffcf9e' : '#23262c')
-    }
-  }
-  const hover = (v) => () => {
-    const el = document.querySelector('.lp-canvas canvas')
-    if (el) el.style.cursor = v ? 'pointer' : 'grab'
-  }
-  return (
-    <group onClick={toggle} onPointerOver={hover(true)} onPointerOut={hover(false)}>
-      <Kenney name="lampRoundFloor" position={[-2620, -960, 1850]} color="#5a5e66" />
-      {/* bulb */}
-      <mesh ref={bulbRef} position={[-2470, 1020, 1700]}>
-        <sphereGeometry args={[45, 12, 12]} />
-        <meshBasicMaterial color="#ffcf9e" toneMapped={false} />
-      </mesh>
-      <pointLight
-        ref={lightRef}
-        position={[-2450, 950, 1780]}
-        intensity={450000}
-        color="#ffb46e"
-        distance={5000}
-        decay={2}
-      />
-    </group>
-  )
-}
 
 /* ------------------------------------------------------------------ *
  * Networking cables: white runs out of the rack's front face, down to
@@ -251,7 +210,36 @@ const Lamp = () => {
 const CABLE_COUNT = 7
 const PACKET_POOL = 12
 
-const NetworkCables = () => {
+/* ------------------------------------------------------------------ *
+ * Day / night mood (indoor lights; the sun/moon, window light and clouds
+ * are in Sky.jsx and read the same value). The lamp toggles it; `mood.t` eases 0 (day) → 1
+ * (night) inside useFrame and every mood-driven light reads it. Each row
+ * is [day, night]. Day: bright, neutral, a sun-like key and strong cool
+ * fill. Night: ambient drops away, the fill turns to moonlight, and the
+ * warm key, monitor wash, rack glow and floor lamp carry the room.
+ * ------------------------------------------------------------------ */
+const MOOD = {
+  ambient: [1.0, 0.22],
+  hemi: [1.5, 0.35],
+  hemiSky: ['#d2e8ff', '#28324f'],
+  hemiGround: ['#7a6448', '#0b0906'],
+  key: [2.6, 1.6], // the window sun (Sky.jsx) carries daylight now
+  keyColor: ['#fff6e8', '#ffbf75'],
+  fill: [1.1, 0.14],
+  fillColor: ['#e4f0ff', '#7a90d4'],
+  wash: [140000, 700000],
+  rack: [0.35, 1.35],
+  exposure: [1.3, 1.1],
+}
+const MOOD_COLORS = Object.fromEntries(
+  Object.entries(MOOD)
+    .filter(([, v]) => typeof v[0] === 'string')
+    .map(([k, v]) => [k, v.map((c) => new THREE.Color(c))]),
+)
+const moodAt = (key, t) => lerp(MOOD[key][0], MOOD[key][1], t)
+const moodColor = (out, key, t) => out.lerpColors(MOOD_COLORS[key][0], MOOD_COLORS[key][1], t)
+
+const NetworkCables = ({ mood }) => {
   const cables = useMemo(() => {
     const list = []
     for (let i = 0; i < CABLE_COUNT; i++) {
@@ -303,7 +291,7 @@ const NetworkCables = () => {
       for (const p of packets.current) {
         influence += p.t < 0.15 ? (0.15 - p.t) / 0.15 : p.t > 0.85 ? (p.t - 0.85) / 0.15 : 0
       }
-      const target = 80000 + 400000 * Math.min(1, influence)
+      const target = (80000 + 400000 * Math.min(1, influence)) * moodAt('rack', mood.current.t)
       spillRef.current.intensity = lerp(spillRef.current.intensity, target, 0.18)
     }
     // advance + recycle
@@ -359,135 +347,100 @@ const NetworkCables = () => {
 }
 
 /* ------------------------------------------------------------------ *
- * World
+ * Gas-spring monitor arm, in the gap between the monitor and the back
+ * wall: a clamp on the desk's back edge, a short pole, a lower arm that
+ * swings out level, the angled gas-spring arm (twin rails + the strut),
+ * and a tilt head on the monitor's VESA plate.
  * ------------------------------------------------------------------ */
-/* ------------------------------------------------------------------ *
- * Floor guitar stand holding a strat-style electric: body and pickguard
- * are extruded bezier outlines (proper double-cutaway silhouette), maple
- * neck with fretboard, tilted headstock with tuners.
- * ------------------------------------------------------------------ */
-const stratShape = () => {
-  // front view: x across, y up; bottom of body at y=0, neck pocket ~y=556
-  const sh = new THREE.Shape()
-  sh.moveTo(0, 0)
-  // right lower bout
-  sh.bezierCurveTo(150, 0, 238, 100, 238, 200)
-  sh.bezierCurveTo(238, 270, 205, 305, 165, 335)
-  // right cutaway horn (small)
-  sh.bezierCurveTo(125, 375, 128, 420, 168, 455)
-  sh.bezierCurveTo(195, 480, 165, 520, 62, 556)
-  // neck pocket
-  sh.lineTo(-62, 556)
-  // left horn (long)
-  sh.bezierCurveTo(-130, 570, -172, 575, -190, 595)
-  sh.bezierCurveTo(-202, 602, -186, 540, -160, 470)
-  sh.bezierCurveTo(-150, 435, -125, 425, -105, 428)
-  // left waist + lower bout
-  sh.bezierCurveTo(-130, 360, -205, 305, -238, 270)
-  sh.bezierCurveTo(-238, 260, -238, 210, -238, 200)
-  sh.bezierCurveTo(-238, 100, -150, 0, 0, 0)
-  return sh
-}
-
-const GuitarStand = () => {
-  const bodyGeo = useMemo(() => {
-    const geo = new THREE.ExtrudeGeometry(stratShape(), { depth: 90, bevelEnabled: false, curveSegments: 24 })
-    geo.translate(0, 0, -45)
-    return geo
-  }, [])
-  const guardGeo = useMemo(() => {
-    const geo = new THREE.ExtrudeGeometry(stratShape(), { depth: 12, bevelEnabled: false, curveSegments: 24 })
-    geo.scale(0.76, 0.78, 1)
-    geo.translate(0, 70, 44)
-    return geo
-  }, [])
-
+const ARM_Z = -1900
+const armMat = <meshStandardMaterial color="#16181c" roughness={0.45} metalness={0.45} />
+const Joint = ({ position, r = 34, l = 70 }) => (
+  <mesh position={position} rotation={[Math.PI / 2, 0, 0]} castShadow>
+    <cylinderGeometry args={[r, r, l, 20]} />
+    {armMat}
+  </mesh>
+)
+// a straight segment from a to b (in the x/y plane at ARM_Z + dz)
+const Segment = ({ a, b, h = 52, d = 48, dz = 0 }) => {
+  const dx = b[0] - a[0]
+  const dy = b[1] - a[1]
   return (
-    <group position={[2350, -960, -1650]} rotation={[0, -0.65, 0]}>
-      {/* A-frame stand: front + back legs meet at the neck yoke */}
-      <mesh position={[0, 430, 90]} rotation={[0.3, 0, 0]} castShadow>
-        <boxGeometry args={[40, 900, 40]} />
-        <meshStandardMaterial color="#1a1d22" roughness={0.5} metalness={0.4} />
+    <mesh
+      position={[(a[0] + b[0]) / 2, (a[1] + b[1]) / 2, ARM_Z + dz]}
+      rotation={[0, 0, Math.atan2(dy, dx)]}
+      castShadow
+    >
+      <boxGeometry args={[Math.hypot(dx, dy), h, d]} />
+      {armMat}
+    </mesh>
+  )
+}
+const MonitorArm = () => {
+  const pole = [-640, 0]
+  const shoulder = [-640, 300]
+  const elbow = [-320, 300]
+  const head = [-40, DISPLAY.cy - 40]
+  const springA = [elbow[0] + 40, elbow[1] + 10]
+  const springB = [head[0] - 70, head[1] - 60]
+  return (
+    <group>
+      {/* clamp: top plate on the desk + jaw under the back edge */}
+      <mesh position={[pole[0], 30, ARM_Z - 20]} castShadow>
+        <boxGeometry args={[130, 60, 170]} />
+        {armMat}
       </mesh>
-      <mesh position={[0, 430, -90]} rotation={[-0.3, 0, 0]} castShadow>
-        <boxGeometry args={[40, 900, 40]} />
-        <meshStandardMaterial color="#1a1d22" roughness={0.5} metalness={0.4} />
+      <mesh position={[pole[0], -36 - 50, ARM_Z - 60]} castShadow>
+        <boxGeometry args={[110, 40, 120]} />
+        {armMat}
       </mesh>
-      {/* body cradle */}
-      <mesh position={[0, 70, 210]} castShadow>
-        <boxGeometry args={[300, 30, 140]} />
-        <meshStandardMaterial color="#23262c" roughness={0.7} />
+      <mesh position={[pole[0], -36 - 25, ARM_Z - 112]} castShadow>
+        <boxGeometry args={[110, 90, 20]} />
+        {armMat}
       </mesh>
-      {/* neck yoke */}
-      <mesh position={[0, 870, 0]} castShadow>
-        <boxGeometry args={[170, 40, 90]} />
-        <meshStandardMaterial color="#23262c" roughness={0.7} />
+      {/* pole */}
+      <mesh position={[pole[0], 175, ARM_Z]} castShadow>
+        <cylinderGeometry args={[24, 26, 290, 20]} />
+        {armMat}
       </mesh>
-
-      {/* the guitar, leaning back into the yoke */}
-      <group rotation={[-0.18, 0, 0]}>
-        {/* body + pickguard */}
-        <mesh geometry={bodyGeo} position={[0, 20, 0]} castShadow>
-          <meshStandardMaterial color="#14161a" roughness={0.35} metalness={0.25} />
-        </mesh>
-        <mesh geometry={guardGeo} position={[0, 20, 0]}>
-          <meshStandardMaterial color="#e8e6df" roughness={0.5} />
-        </mesh>
-        {/* three single-coil pickups */}
-        {[190, 305, 370].map((py) => (
-          <mesh key={py} position={[0, py, 60]}>
-            <boxGeometry args={[210, 16, 34]} />
-            <meshStandardMaterial color="#e8e6df" roughness={0.5} />
-          </mesh>
-        ))}
-        {/* controls */}
-        {[150, 225].map((ky) => (
-          <mesh key={ky} position={[105, ky, 60]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[22, 22, 20, 16]} />
-            <meshStandardMaterial color="#3a3d42" roughness={0.4} metalness={0.6} />
-          </mesh>
-        ))}
-        {/* bridge */}
-        <mesh position={[0, 95, 52]}>
-          <boxGeometry args={[220, 30, 24]} />
-          <meshStandardMaterial color="#787d85" roughness={0.3} metalness={0.8} />
-        </mesh>
-        {/* maple neck */}
-        <mesh position={[0, 1180, -10]} castShadow>
-          <boxGeometry args={[80, 50, 1250]} />
-          <meshStandardMaterial color="#c9a878" roughness={0.6} />
-        </mesh>
-        {/* fretboard */}
-        <mesh position={[0, 1200, 17]}>
-          <planeGeometry args={[68, 1230]} />
-          <meshStandardMaterial color="#2a2118" roughness={0.7} />
-        </mesh>
-        {/* strings */}
-        {[-25, -15, -5, 5, 15, 25].map((ix) => (
-          <mesh key={ix} position={[ix, 950, 50]}>
-            <boxGeometry args={[2.5, 1710, 2]} />
-            <meshStandardMaterial color="#c8ccd2" roughness={0.3} metalness={0.9} />
-          </mesh>
-        ))}
-        {/* headstock, tilted back, with 6 tuners */}
-        <group position={[0, 1900, -45]} rotation={[-0.18, 0, 0]}>
-          <mesh castShadow>
-            <boxGeometry args={[110, 45, 290]} />
-            <meshStandardMaterial color="#14161a" roughness={0.4} metalness={0.25} />
-          </mesh>
-          {[-25, -15, -5, 5, 15, 25].map((tx) => (
-            <mesh key={tx} position={[tx, 0, 30]} rotation={[Math.PI / 2, 0, 0]}>
-              <cylinderGeometry args={[9, 9, 40, 12]} />
-              <meshStandardMaterial color="#c8ccd2" roughness={0.3} metalness={0.85} />
-            </mesh>
-          ))}
-        </group>
-      </group>
+      {/* lower arm, level */}
+      <Joint position={[...shoulder, ARM_Z]} r={38} />
+      <Segment a={shoulder} b={elbow} h={56} />
+      <Joint position={[...elbow, ARM_Z]} />
+      {/* gas-spring arm: twin rails with the strut between them */}
+      <Segment a={elbow} b={head} h={18} d={14} dz={-20} />
+      <Segment a={elbow} b={head} h={18} d={14} dz={20} />
+      <Segment a={[elbow[0], elbow[1] - 26]} b={[head[0], head[1] - 26]} h={14} d={54} />
+      <mesh
+        position={[(springA[0] + springB[0]) / 2, (springA[1] + springB[1]) / 2, ARM_Z]}
+        rotation={[0, 0, Math.atan2(springB[1] - springA[1], springB[0] - springA[0]) - Math.PI / 2]}
+      >
+        <cylinderGeometry args={[11, 11, Math.hypot(springB[0] - springA[0], springB[1] - springA[1]), 12]} />
+        <meshStandardMaterial color="#8d939c" roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* tilt head + VESA plate on the monitor's back */}
+      <Joint position={[...head, ARM_Z]} />
+      <mesh position={[0, DISPLAY.cy, -1840]} castShadow>
+        <boxGeometry args={[80, 80, 80]} />
+        {armMat}
+      </mesh>
+      <Segment a={head} b={[0, DISPLAY.cy]} h={40} d={40} />
+      <mesh position={[0, DISPLAY.cy, -1806]}>
+        <boxGeometry args={[150, 150, 12]} />
+        {armMat}
+      </mesh>
     </group>
   )
 }
 
-const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) => {
+const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, night, onToggleMood }) => {
+  // day/night: `t` eases toward `night` each frame (see MOOD)
+  const mood = useRef({ t: night ? 1 : 0 })
+  const nightRef = useRef(night)
+  nightRef.current = night
+  const lights = useRef({})
+  const setLight = (k) => (l) => {
+    if (l) lights.current[k] = l
+  }
   const stateRef = useRef(null)
   const ledRefs = useRef([])
   const { camera, size, gl } = useThree()
@@ -495,7 +448,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
   // swipes feed it too); yaw eases toward target here each frame
   const pan = panRef
 
-  const wallpaper = useMemo(() => makeWallpaper(), [])
+  const wallpaper = useMemo(() => loadWallpaper(), [])
   const woodFloor = useMemo(() => makeWoodFloor(), [])
 
   // pointer drag on the canvas pans the view (horizontal only — vertical
@@ -551,7 +504,34 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
     camera.lookAt(POSE_ROOM.look[0], POSE_ROOM.look[1], POSE_ROOM.look[2])
   }, [])
 
-  useFrame(() => {
+  useFrame((_, delta) => {
+    // ---- mood: ease toward the target, then push it into the lights ----
+    const m = mood.current
+    const goal = nightRef.current ? 1 : 0
+    if (m.applied !== m.t || m.t !== goal) {
+      m.t += (goal - m.t) * Math.min(1, delta * 2.2)
+      if (Math.abs(goal - m.t) < 1e-3) m.t = goal
+      const t = m.t
+      const L = lights.current
+      if (L.ambient) L.ambient.intensity = moodAt('ambient', t)
+      if (L.hemi) {
+        L.hemi.intensity = moodAt('hemi', t)
+        moodColor(L.hemi.color, 'hemiSky', t)
+        moodColor(L.hemi.groundColor, 'hemiGround', t)
+      }
+      if (L.key) {
+        L.key.intensity = moodAt('key', t)
+        moodColor(L.key.color, 'keyColor', t)
+      }
+      if (L.fill) {
+        L.fill.intensity = moodAt('fill', t)
+        moodColor(L.fill.color, 'fillColor', t)
+      }
+      if (L.wash) L.wash.intensity = moodAt('wash', t)
+      gl.toneMappingExposure = moodAt('exposure', t)
+      m.applied = t
+    }
+
     const s = stateRef.current
     if (!s) return
     const vw = size.width
@@ -627,11 +607,12 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
 
   return (
     <Suspense fallback={null}>
-      {/* ---------------- cozy lighting ---------------- */}
-      <ambientLight intensity={0.7} />
-      <hemisphereLight args={['#4a566e', '#141008', 1.0]} />
-      {/* warm desk lamp, from above-right */}
+      {/* ---------------- lighting (intensities/colours: see MOOD) ------ */}
+      <ambientLight ref={setLight('ambient')} intensity={0.7} />
+      <hemisphereLight ref={setLight('hemi')} args={['#4a566e', '#141008', 1.0]} />
+      {/* key light, from above-right: sun by day, warm lamp glow by night */}
       <spotLight
+        ref={setLight('key')}
         position={[420, 1600, 1000]}
         angle={0.75}
         penumbra={1}
@@ -641,59 +622,49 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
         shadow-mapSize-width={2048}
         shadow-mapSize-height={2048}
       />
-      {/* soft cool fill so the shadows aren't crushed */}
-      <directionalLight position={[-300, 800, 2600]} intensity={0.35} color="#cfe0ff" />
+      {/* cool fill so the shadows aren't crushed: daylight → moonlight */}
+      <directionalLight ref={setLight('fill')} position={[-300, 800, 2600]} intensity={0.35} color="#cfe0ff" />
 
       {/* monitor LED wash (physical units: ~0.9 at the wall behind it) */}
-      <pointLight position={[0, 420, -1350]} intensity={500000} color="#4a90d9" distance={3000} decay={2} />
+      <pointLight ref={setLight('wash')} position={[0, 420, -1350]} intensity={500000} color="#4a90d9" distance={3000} decay={2} />
+
+      {/* ---------------- outside: sun/moon + light, drifting clouds ---- */}
+      <SunMoon mood={mood} onToggle={onToggleMood} />
+      <Clouds mood={mood} />
 
       {/* ---------------- shell ---------------- */}
+      {/* floor surface; polygonOffset pulls it ahead of the slab's top face
+          below (same height) so the two never z-fight */}
       <mesh position={[0, -960, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[5600, 4200]} />
-        <meshStandardMaterial map={woodFloor} roughness={0.55} metalness={0.05} />
+        <meshStandardMaterial
+          map={woodFloor}
+          roughness={0.55}
+          metalness={0.05}
+          polygonOffset
+          polygonOffsetFactor={-2}
+          polygonOffsetUnits={-2}
+        />
       </mesh>
-      <mesh position={[0, 650, -2050]} receiveShadow>
-        <planeGeometry args={[5600, 3300]} />
+      {/* floor slab: 120 thick, running out under both walls (x to -2860,
+          z to -2110) so the room sits on one solid base */}
+      <mesh position={[-30, -960 - 60, -5]} castShadow receiveShadow>
+        <boxGeometry args={[5660, 120, 4210]} />
+        <meshStandardMaterial color="#4a3220" roughness={0.8} />
+      </mesh>
+      {/* back wall: a 60-thick slab like the left wall (WindowWall) — inner
+          face at z=-2050, running out over the left wall's thickness
+          (x=-2860) so the corner closes; same floor-to-top span as the
+          left wall (y -960 → 2340) so the tops line up */}
+      <mesh position={[-30, 690, -2080]} castShadow receiveShadow>
+        <boxGeometry args={[5660, 3300, 60]} />
         <meshStandardMaterial color="#b0aca3" roughness={1} />
       </mesh>
-      <mesh position={[-2800, 650, 0]} rotation={[0, Math.PI / 2, 0]} receiveShadow>
-        <planeGeometry args={[4200, 3300]} />
-        <meshStandardMaterial color="#b0aca3" roughness={1} />
-      </mesh>
-      {/* rug */}
-      <mesh position={[-100, -959, -1050]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[2400, 1200]} />
-        <meshStandardMaterial color="#2b3040" roughness={1} />
-      </mesh>
+      {/* left wall, with the window the sun/moon shines through */}
+      <WindowWall mood={mood} />
 
-      {/* ---------------- standing desk: wooden top, black frame -------- */}
-      {/* maple top */}
-      <mesh position={[0, -10, -1350]} castShadow receiveShadow>
-        <boxGeometry args={[2600, 20, 1300]} />
-        <meshStandardMaterial color="#7c5730" roughness={0.75} metalness={0.05} />
-      </mesh>
-      {/* telescoping legs: lower column + slimmer riser + foot */}
-      {[-1050, 1050].map((x) => (
-        <group key={x}>
-          <mesh position={[x, -470, -1410]} castShadow>
-            <boxGeometry args={[130, 900, 130]} />
-            {darkMat('#101318', 0.45)}
-          </mesh>
-          <mesh position={[x, -350, -1410]} castShadow>
-            <boxGeometry args={[90, 520, 90]} />
-            {darkMat('#181c24', 0.4)}
-          </mesh>
-          <mesh position={[x, -950, -1410]} castShadow>
-            <boxGeometry args={[320, 20, 160]} />
-            {darkMat('#101318', 0.45)}
-          </mesh>
-        </group>
-      ))}
-      {/* crossbar tying the feet together */}
-      <mesh position={[0, -890, -1410]} castShadow>
-        <boxGeometry args={[1980, 70, 70]} />
-        {darkMat('#101318', 0.45)}
-      </mesh>
+      {/* ---------------- standing desk ---------------- */}
+      <StandingDesk />
 
       {/* ---------------- server rack (left, a touch taller) ------------ */}
       <mesh position={[-2050, -232, -1545]} castShadow receiveShadow>
@@ -718,7 +689,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
         </mesh>
       ))}
 
-      <NetworkCables />
+      <NetworkCables mood={mood} />
 
       {/* wooden cap on top of the rack — the tablet sits on it */}
       <mesh position={[-2050, 511, -1545]} castShadow receiveShadow>
@@ -726,18 +697,12 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
         <meshStandardMaterial color="#7c5730" roughness={0.75} metalness={0.05} />
       </mesh>
 
-      <RackTablet />
+      {/* retro flip clock centred on the rack's wooden top, turned a little toward
+          the room; shows the visitor's local time */}
+      <FlipClock position={[-2050, 542, -1545]} rotation={[0, 0.25, 0]} />
 
       {/* ---------------- ultrawide on a gas-spring arm --------------- */}
-      {/* arm: post on the desk + horizontal spring segment behind the panel */}
-      <mesh position={[60, 200, -1830]} castShadow>
-        <boxGeometry args={[44, 400, 26]} />
-        {darkMat('#14161c', 0.5)}
-      </mesh>
-      <mesh position={[-120, 485, -1820]} castShadow>
-        <boxGeometry args={[480, 26, 24]} />
-        {darkMat('#14161c', 0.5)}
-      </mesh>
+      <MonitorArm />
       {/* cabinet + display: hosts the story's DOM screen */}
       <mesh position={[DISPLAY.cx, DISPLAY.cy, -1770]} castShadow>
         <boxGeometry args={[1600, 760, 60]} />
@@ -752,92 +717,44 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose }) =>
         <meshBasicMaterial color="#59f0a2" />
       </mesh>
 
-      {/* ---------------- DAC under the monitor (procedural) ------------ */}
-      <mesh position={[-450, -35, -1660]} castShadow>
-        <boxGeometry args={[360, 70, 90]} />
-        {darkMat('#1d2129', 0.35)}
-      </mesh>
-      <mesh position={[-390, -35, -1615]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[17, 17, 8, 24]} />
-        {darkMat('#2a2f3a', 0.3)}
-      </mesh>
+      {/* ---------------- audio interface (Volt 2), centred under the
+          monitor ---------------- */}
+      <AudioInterface position={[0, 2, -1640]} />
 
-      {/* ---------------- keyboard · pad · mouse (kenney) --------------- */}
-      <mesh position={[140, -1, -1090]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[1120, 520]} />
-        <meshStandardMaterial color="#111319" roughness={0.9} />
-      </mesh>
-      <Kenney name="computerKeyboard" position={[-352, 0, -953]} />
-      <Kenney name="computerMouse" position={[600, 0, -993]} />
+      {/* ---------------- keyboard · mouse (kenney) · mousepad · headphones --------------- */}
+      <Kenney name="computerKeyboard" position={[-352, 0, -953]} dark />
+      {/* mousepad: desk-mat size, from just right of the keyboard out
+          toward the desk's right edge; the mouse rests on it */}
+      <RoundedBox args={[800, 5, 540]} radius={2.4} smoothness={2} position={[845, 2.5, -1050]} receiveShadow>
+        <meshStandardMaterial color="#17181b" roughness={0.95} />
+      </RoundedBox>
+      <Kenney name="computerMouse" position={[600, 5, -993]} dark />
+      {/* headphones lying flat to the left of the keyboard */}
+      <Headphones position={[-820, 0, -1000]} rotation={[0, 0.35, 0]} />
 
-      {/* ---------------- speakers flanking the monitor ---------------- */}
-      <Kenney name="speakerSmall" position={[-1235, 0, -1433]} />
-      <Kenney name="speakerSmall" position={[865, 0, -1433]} />
-      <Kenney name="plantSmall2" position={[1150, 0, -1650]} />
-
-      {/* ---------------- headphone stand (procedural) ------------------- */}
-      <mesh position={[840, 8, -1685]} castShadow>
-        <cylinderGeometry args={[60, 70, 16, 24]} />
-        {darkMat('#15181f', 0.5)}
-      </mesh>
-      <mesh position={[842, 175, -1690]} castShadow>
-        <cylinderGeometry args={[14, 14, 334, 16]} />
-        {darkMat('#1c2029', 0.5)}
-      </mesh>
-      <mesh position={[842, 330, -1690]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[120, 6, 12, 40, Math.PI]} />
-        {darkMat('#1c2029', 0.5)}
-      </mesh>
-      {[745, 939].map((x) => (
-        <group key={x} position={[x, 346, -1690]}>
-          <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[38, 38, 76, 24]} />
-            {darkMat('#232833', 0.55)}
-          </mesh>
-          <mesh position={[x < 842 ? 22 : -22, 0, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[26, 26, 74, 24]} />
-            {darkMat('#0a0c10', 0.9)}
-          </mesh>
-        </group>
-      ))}
+      {/* ---------------- speakers flanking the monitor, on 15° risers -- */}
+      <Speaker position={[-1235, 0, -1433]} />
+      <Speaker position={[865, 0, -1433]} />
 
       {/* ---------------- room dressing (kenney) ------------------------ */}
-      <Lamp />
-      <GuitarStand />
-      {/* Togo-style lounge couch: low, slouchy, rolled arms, mustard
-          fabric, angled facing diagonally away from the corner lamp */}
-      <group position={[-1860, -960, 900]} rotation={[0, 2.5, 0]}>
-        {/* deep slouchy seat */}
-        <mesh position={[0, 130, 60]} castShadow receiveShadow>
-          <boxGeometry args={[1330, 260, 1300]} />
-          <meshStandardMaterial color="#c39d2d" roughness={1} />
-        </mesh>
-        {/* seat cushion */}
-        <mesh position={[0, 320, 120]} castShadow>
-          <boxGeometry args={[1220, 120, 1080]} />
-          <meshStandardMaterial color="#d0ac47" roughness={1} />
-        </mesh>
-        {/* leaning backrest */}
-        <mesh position={[0, 530, -440]} rotation={[-0.35, 0, 0]} castShadow>
-          <boxGeometry args={[1330, 640, 330]} />
-          <meshStandardMaterial color="#b8922a" roughness={1} />
-        </mesh>
-        {/* rolled arms along the length */}
-        {[-665, 665].map((ax) => (
-          <mesh key={ax} position={[ax, 320, -10]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[140, 140, 830, 18]} />
-            <meshStandardMaterial color="#b8922a" roughness={1} />
-          </mesh>
-        ))}
-        {/* lumbar pillow */}
-        <mesh position={[190, 400, -260]} rotation={[-0.35, 0.2, 0]} castShadow>
-          <boxGeometry args={[420, 180, 160]} />
-          <meshStandardMaterial color="#8d9aa8" roughness={1} />
-        </mesh>
+      {/* click the lamp to switch day ↔ night */}
+      <FloorLamp position={[-2520, -960, 1780]} rotation={[0, 0.68, 0]} mood={mood} onToggle={onToggleMood} />
+      {/* 1.5×, pulled off the back wall so the stand's rear leg clears it */}
+      <HeadlessGuitar position={[2350, -960, -1450]} rotation={[0, -0.65, 0]} scale={1.5} />
+      {/* Togo-style lounge chair at 1.5×, set diagonally in the front-left
+          of the room facing across toward the desk side — pushed as far
+          forward as the floor's front edge allows, clear of the left wall,
+          lamp and desk chair */}
+      <group position={[-1370, -960, 760]} rotation={[0, 2.115, 0]} scale={1.5}>
+        <LoungeChair />
+        {/* the cat, loafing on the seat (couch-local units, so undo the
+            couch's 1.5× to keep her cat-sized) */}
+        {/* turned across the seat to face the opening camera */}
+        <Cat position={[0, 445, -90]} rotation={[0, -1.75, 0]} scale={1 / 1.5} />
       </group>
-      {/* desk chair: centred on the keyboard, pulled up close to the desk
-          (the model's own centre is offset, so the position compensates) */}
-      <Kenney name="chairDesk" position={[417, -960, -642]} rotation={[0, Math.PI, 0]} color="#5a5e66" />
+      {/* desk chair at 1.5× — set back so the raised armrests clear the
+          desk's front edge (z=-700) */}
+      <OfficeChair position={[140, -960, -120]} scale={1.5} />
 
       {/* the story's screen: real DOM, attached to the ultrawide's display */}
       <Html

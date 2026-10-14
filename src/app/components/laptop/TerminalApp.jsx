@@ -22,14 +22,14 @@ const mulberry32 = (seed) => () => {
 // as the kube-cats project detail ([1]); its page is always on and reads the
 // detail progress (--dp) instead of a beat. Push transitions only happen
 // between pages that share a pane; ranges extend past their resting beat
-// (…2.12 instead of …2.0) so a finished scene stays up while idle and only
+// (…1.12 instead of …1.0) so a finished scene stays up while idle and only
 // pushes away once the next beat's tween is underway.
 const PAGE_RANGES = [
-  [0, 2.12], // whoami + about — visible (idle, untyped) from the room shot
+  [0, 1.12], // whoami + about — already shown on the room shot (beat 0)
   null, // kubectl get po (+ cats) — kube-cats detail, always on
-  [2.12, 3.12], // cat ~/projects.md (beat 2)
-  [3.12, 99], // cat ~/work_experience.md (beat 3)
-  [0, 99], // motd — own pane, visible only on beat 5
+  [1.12, 2.12], // cat ~/projects.md (beat 1)
+  [2.12, 99], // cat ~/work_experience.md (beat 2)
+  [0, 99], // motd — own pane, visible only on beat 4
 ]
 
 // project rows that open a visualization, keyed by the row's slug
@@ -184,14 +184,19 @@ const TerminalApp = ({
       </div>
 
       <div className="lp-appbody">
-        {/* page 0 — whoami + about (beat 1) */}
+        {/* page 0 — whoami + about (beat 0); fully typed from the start
+            (--bv: 1), so the monitor already shows the output in the room
+            shot */}
         {has(0) && (
-        <div className="lp-page on" data-pi="0" style={{ '--bv': 'var(--b1, 0)' }}>
+        <div className="lp-page on" data-pi="0" style={{ '--bv': 1 }}>
           <Prompt>
             <Typed text="whoami" from={0.5} to={0.68} />
           </Prompt>
           <L at={0.7} className="lp-ascii">
             <AsciiName />
+          </L>
+          <L at={0.73} className="lp-dim lp-aka">
+            (jonathan ng)
           </L>
           <L at={0.76} className="lp-dim">
             site reliability engineer <span className="lp-sep">/</span>{' '}
@@ -281,10 +286,10 @@ const TerminalApp = ({
         </div>
         )}
 
-        {/* page 2 — cat ~/projects.md (beat 2). Rows with a visualization are
+        {/* page 2 — cat ~/projects.md (beat 1). Rows with a visualization are
             buttons that open the project detail; the rest keep their link. */}
         {has(2) && (
-        <div className="lp-page" data-pi="2" style={{ '--bv': 'var(--b2, 0)' }}>
+        <div className="lp-page" data-pi="2" style={{ '--bv': 'var(--b1, 0)' }}>
           <Prompt>
             <Typed text="cat ~/projects.md" from={0.18} to={0.42} />
           </Prompt>
@@ -341,9 +346,9 @@ const TerminalApp = ({
         </div>
         )}
 
-        {/* page 3 — cat ~/work_experience.md (beat 3) */}
+        {/* page 3 — cat ~/work_experience.md (beat 2) */}
         {has(3) && (
-        <div className="lp-page" data-pi="3" style={{ '--bv': 'var(--b3, 0)' }}>
+        <div className="lp-page" data-pi="3" style={{ '--bv': 'var(--b2, 0)' }}>
           <Prompt>
             <Typed text="cat ~/work_experience.md" from={0.18} to={0.46} />
           </Prompt>
@@ -397,9 +402,9 @@ const TerminalApp = ({
         </div>
         )}
 
-        {/* page 4 — motd (beat 5) */}
+        {/* page 4 — motd (beat 4) */}
         {has(4) && (
-        <div className="lp-page" data-pi="4" style={{ '--bv': 'var(--b5, 0)' }}>
+        <div className="lp-page" data-pi="4" style={{ '--bv': 'var(--b4, 0)' }}>
           <Prompt>
             <Typed text="motd" from={0.3} to={0.42} />
           </Prompt>
