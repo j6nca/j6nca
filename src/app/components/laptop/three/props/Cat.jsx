@@ -32,20 +32,29 @@ const makeCoat = (seed, ginger = 1) =>
     }
     blot('rgba(110,72,44,A)', 40, 14, 40, '0.55') // brown wash
     blot('rgba(196,132,70,A)', Math.round(26 * ginger), 8, 30, '0.7') // ginger patches
-    // fine fur: thin, faint, slightly blurred strands
-    g.filter = 'blur(0.6px)'
+    // fine fur: thin, faint strands, batched into one path per colour and
+    // opacity step (6 strokes, not 6000). No canvas `filter`: on Android
+    // Chrome's GPU-drawn canvas, thousands of blurred strokes took down the
+    // GPU process (the whole browser closed). The texture's mipmapping
+    // softens the strands enough on its own.
     g.lineWidth = 0.8
+    const tones = ['205,145,85', '80,52,34']
+    const alphas = [0.12, 0.18, 0.24]
+    const paths = tones.map(() => alphas.map(() => new Path2D()))
     for (let i = 0; i < 6000; i++) {
       const x = r() * w
       const y = r() * h
       const len = 2 + r() * 4
-      g.strokeStyle = r() < 0.5 ? `rgba(205,145,85,${0.1 + r() * 0.15})` : `rgba(80,52,34,${0.12 + r() * 0.15})`
-      g.beginPath()
-      g.moveTo(x, y)
-      g.lineTo(x + (r() - 0.5) * 1.5, y + len)
-      g.stroke()
+      const path = paths[r() < 0.5 ? 0 : 1][Math.floor(r() * alphas.length)]
+      path.moveTo(x, y)
+      path.lineTo(x + (r() - 0.5) * 1.5, y + len)
     }
-    g.filter = 'none'
+    tones.forEach((c, ti) =>
+      alphas.forEach((a, ai) => {
+        g.strokeStyle = `rgba(${c},${a})`
+        g.stroke(paths[ti][ai])
+      }),
+    )
   })
 
 // head: same coat, plus the split face. SphereGeometry UVs: u = 0.25 faces
