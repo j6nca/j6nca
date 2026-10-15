@@ -6,9 +6,10 @@ import PageDots from './PageDots'
 /*
  * The mobile site: four full-screen "pages" — whoami, projects, work
  * experience, a year of commits — in a snap-scrolling column, plus a
- * persistent footer bar (email · resume · view desktop mode). No laptop, no
- * animation; the same resume.json / contributions.json drive it. SiteSwitch
- * decides when this renders instead of the laptop scene.
+ * persistent footer bar (email · resume · back to the 3D view). No laptop, no
+ * animation; the same resume.json / contributions.json drive it. It's the
+ * opt-in text-only site (?mobile, linked from the scene on small screens)
+ * and the no-JS fallback; SiteSwitch decides when it renders.
  */
 
 const year = (v) => (v && v !== 'present' ? v.slice(0, 4) : 'now')
@@ -150,8 +151,8 @@ const MobileSite = ({ data, contributions }) => {
       <footer className="m-bar mono">
         <a href={`mailto:${basics.email}`}>{basics.email}</a>
         <a href="./resume">resume</a>
-        <a href="?desktop=1">
-          desktop mode <span className="card-arrow">→</span>
+        <a href="./">
+          3D view <span className="card-arrow">→</span>
         </a>
       </footer>
     </div>

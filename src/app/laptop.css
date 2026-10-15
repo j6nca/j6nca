@@ -1027,7 +1027,9 @@ body:has(.lp-scroll) {
 }
 .lp-intro-sub {
   margin-top: 0.4rem;
-  color: var(--muted);
+  /* near-white so it stays legible where the translucent pill passes over
+     a bright daytime cloud */
+  color: #eef1f5;
   font-size: 0.85rem;
   letter-spacing: 0.14em;
   /* translucent gray backing so the sub-line reads over the 3D scene */

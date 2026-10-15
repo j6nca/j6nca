@@ -105,8 +105,7 @@ const Sky = () => (
   </div>
 )
 
-// `mobileHref`: when the scene was forced onto a phone-sized viewport
-// (?desktop), a link back to the plain mobile site.
+// `mobileHref`: on phone-sized screens, a link to the text-only site.
 const LaptopScene = ({ data, contributions, mobileHref }) => {
   const rootRef = useRef(null)
   const subsRef = useRef(new Set())

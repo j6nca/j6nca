@@ -63,9 +63,23 @@ const viewH = (d) => 2 * d * Math.tan((FOV / 2) * DEG)
 
 // opening-shot scale: fit ~15600 world units across, or ~12000 down. On a
 // portrait screen the width fit alone would park the camera ~35000 out
-// (past the far plane, so the room vanished); there, frame tighter across
-// and let the sky margin crop.
-const roomScale = (vw, vh) => Math.min(vw / (vw < vh ? 8200 : 15600), vh / 12000)
+// (past the far plane, so the room vanished); there, frame ~12000 across
+// and slide the view left (see roomPose) so the sun/moon and the lamp —
+// the day/night toggles — stay on screen with the whole room.
+const roomScale = (vw, vh) => Math.min(vw / (vw < vh ? 12000 : 15600), vh / 12000)
+
+// opening pose for this viewport: on portrait, the look target slides
+// 850 units along the camera's left so the sun (up-left of the room) fits
+const PORTRAIT_SHIFT = 850
+const ROOM_LEFT = (() => {
+  const [dx, , dz] = POSE_ROOM.dir
+  const l = Math.hypot(dx, dz)
+  return [dz / l, 0, -dx / l] // horizontal, perpendicular to dir, pointing left on screen
+})()
+const roomPose = (vw, vh) => {
+  const k = vw < vh ? PORTRAIT_SHIFT : 0
+  return { dir: POSE_ROOM.dir, look: POSE_ROOM.look.map((v, i) => v + ROOM_LEFT[i] * k) }
+}
 
 /* ------------------------------------------------------------------ *
  * Textures: the wood floor is procedural (canvas → CanvasTexture); the
@@ -502,14 +516,15 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
   // never flashes the (stale, closer) default camera position.
   useLayoutEffect(() => {
     const sRoom = roomScale(size.width, size.height)
+    const pose = roomPose(size.width, size.height)
     // include the default opening framing so the first painted frame matches
     const dRoom = (size.height / sRoom / viewH(1)) * 0.8
     camera.position.set(
-      POSE_ROOM.look[0] - POSE_ROOM.dir[0] * dRoom,
-      POSE_ROOM.look[1] - POSE_ROOM.dir[1] * dRoom,
-      POSE_ROOM.look[2] - POSE_ROOM.dir[2] * dRoom,
+      pose.look[0] - pose.dir[0] * dRoom,
+      pose.look[1] - pose.dir[1] * dRoom,
+      pose.look[2] - pose.dir[2] * dRoom,
     )
-    camera.lookAt(POSE_ROOM.look[0], POSE_ROOM.look[1], POSE_ROOM.look[2])
+    camera.lookAt(pose.look[0], pose.look[1], pose.look[2])
   }, [])
 
   useFrame((_, delta) => {
@@ -592,8 +607,9 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
     const fade = 1 - smooth(seg(b0, 0.1, 0.75))
     const zScale = 1 + (pan.current.zoom - 1) * fade
 
-    let pos = mix3(posOf(POSE_ROOM, dRoom * zScale), posScreen, u0)
-    let look = mix3(POSE_ROOM.look, screenLook, u0)
+    const poseRoom = roomPose(vw, vh)
+    let pos = mix3(posOf(poseRoom, dRoom * zScale), posScreen, u0)
+    let look = mix3(poseRoom.look, screenLook, u0)
     pos = mix3(pos, posOf(POSE_KEYS, dKeys), uk)
     look = mix3(look, POSE_KEYS.look, uk)
 
