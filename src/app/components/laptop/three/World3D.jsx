@@ -18,6 +18,8 @@ import AudioInterface from './props/AudioInterface'
 import Cat from './props/Cat'
 import Headphones from './props/Headphones'
 import { Clouds, SunMoon } from './Sky'
+import { DEG, DEFAULT_ZOOM, FOV, POSE_ROOM, roomDistance, roomScale, viewH } from './pose'
+import Interactive from './Interactive'
 
 /*
  * The three.js world behind the story: the room (standing desk, rack,
@@ -39,8 +41,6 @@ import { Clouds, SunMoon } from './Sky'
  * <Html transform>), so every app keeps working unchanged.
  */
 
-const DEG = Math.PI / 180
-const FOV = 42
 const K = 2500 // kenney metres → world units
 
 const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v))
@@ -52,34 +52,10 @@ const smooth = (u) => {
 const lerp = (a, b, u) => a + (b - a) * u
 
 /* Camera poses as { look, dir } — dir is the unit vector *from* the camera
- * *to* the look target; distance is derived per-frame from the viewport so
- * the framing scales like the old sDesk/sRoom/sKeys formulas did. */
-const POSE_ROOM = { look: [-420, 120, -1650], dir: [-0.284, -0.452, -0.838] }
+ * *to* the look target; distance is derived per-frame from the viewport.
+ * The opening pose (POSE_ROOM) lives in ./pose, shared with Sky. */
 // keyboard detail dives onto the external keyboard on the desk
 const POSE_KEYS = { look: [0, 30, -1100], dir: [0, -0.88, -0.475] }
-
-// view height in world units at a given camera distance (fov is fixed)
-const viewH = (d) => 2 * d * Math.tan((FOV / 2) * DEG)
-
-// opening-shot scale: fit ~15600 world units across, or ~12000 down. On a
-// portrait screen the width fit alone would park the camera ~35000 out
-// (past the far plane, so the room vanished); there, frame ~12000 across
-// and slide the view left (see roomPose) so the sun/moon and the lamp —
-// the day/night toggles — stay on screen with the whole room.
-const roomScale = (vw, vh) => Math.min(vw / (vw < vh ? 12000 : 15600), vh / 12000)
-
-// opening pose for this viewport: on portrait, the look target slides
-// 850 units along the camera's left so the sun (up-left of the room) fits
-const PORTRAIT_SHIFT = 850
-const ROOM_LEFT = (() => {
-  const [dx, , dz] = POSE_ROOM.dir
-  const l = Math.hypot(dx, dz)
-  return [dz / l, 0, -dx / l] // horizontal, perpendicular to dir, pointing left on screen
-})()
-const roomPose = (vw, vh) => {
-  const k = vw < vh ? PORTRAIT_SHIFT : 0
-  return { dir: POSE_ROOM.dir, look: POSE_ROOM.look.map((v, i) => v + ROOM_LEFT[i] * k) }
-}
 
 /* ------------------------------------------------------------------ *
  * Textures: the wood floor is procedural (canvas → CanvasTexture); the
@@ -452,7 +428,7 @@ const MonitorArm = () => {
   )
 }
 
-const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, night, onToggleMood, lowPower }) => {
+const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, night, onToggleMood, lowPower, onEnter, isAtRoom }) => {
   // phones/tablets: smaller shadow maps (each 2048² map is ~22MB of GPU memory)
   const shadowSize = lowPower ? 1024 : 2048
   // day/night: `t` eases toward `night` each frame (see MOOD)
@@ -460,6 +436,8 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
   const nightRef = useRef(night)
   nightRef.current = night
   const lights = useRef({})
+  // pointer is over the monitor's live DOM screen (see Interactive hoverRef)
+  const screenHover = useRef(false)
   const setLight = (k) => (l) => {
     if (l) lights.current[k] = l
   }
@@ -480,6 +458,9 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
     let dragging = false
     let lastX = 0
     const onDown = (e) => {
+      // only the room view pans; in the terminal a stray drag would leave a
+      // stale angle behind for the camera to swing back out to
+      if (!isAtRoom()) return
       dragging = true
       lastX = e.clientX
       el.setPointerCapture?.(e.pointerId)
@@ -506,7 +487,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
       el.removeEventListener('pointerup', onUp)
       el.removeEventListener('pointercancel', onUp)
     }
-  }, [gl])
+  }, [gl, isAtRoom])
 
   useEffect(() => subscribe((s) => {
     stateRef.current = s
@@ -515,10 +496,9 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
   // Match the opening pose before the first painted frame, so a refresh
   // never flashes the (stale, closer) default camera position.
   useLayoutEffect(() => {
-    const sRoom = roomScale(size.width, size.height)
-    const pose = roomPose(size.width, size.height)
+    const pose = POSE_ROOM
     // include the default opening framing so the first painted frame matches
-    const dRoom = (size.height / sRoom / viewH(1)) * 0.8
+    const dRoom = roomDistance(size.width, size.height, DEFAULT_ZOOM)
     camera.position.set(
       pose.look[0] - pose.dir[0] * dRoom,
       pose.look[1] - pose.dir[1] * dRoom,
@@ -607,7 +587,7 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
     const fade = 1 - smooth(seg(b0, 0.1, 0.75))
     const zScale = 1 + (pan.current.zoom - 1) * fade
 
-    const poseRoom = roomPose(vw, vh)
+    const poseRoom = POSE_ROOM
     let pos = mix3(posOf(poseRoom, dRoom * zScale), posScreen, u0)
     let look = mix3(poseRoom.look, screenLook, u0)
     pos = mix3(pos, posOf(POSE_KEYS, dKeys), uk)
@@ -727,7 +707,25 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
 
       {/* ---------------- ultrawide on a gas-spring arm --------------- */}
       <MonitorArm />
-      {/* cabinet + display: hosts the story's DOM screen */}
+      {/* cabinet + display: hosts the story's DOM screen. In the room view,
+          clicking the monitor flies the camera in to the terminal (and it's
+          outlined as clickable there). */}
+      <Interactive active={isAtRoom} hoverRef={screenHover}>
+      <group
+        onClick={(e) => {
+          if (!isAtRoom()) return
+          e.stopPropagation()
+          onEnter()
+        }}
+        onPointerOver={() => {
+          const el = document.querySelector('.lp-canvas canvas')
+          if (el && isAtRoom()) el.style.cursor = 'pointer'
+        }}
+        onPointerOut={() => {
+          const el = document.querySelector('.lp-canvas canvas')
+          if (el) el.style.cursor = 'grab'
+        }}
+      >
       <mesh position={[DISPLAY.cx, DISPLAY.cy, -1770]} castShadow>
         <boxGeometry args={[1600, 760, 60]} />
         {darkMat('#0b0d12', 0.45)}
@@ -740,6 +738,8 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
         <circleGeometry args={[6, 12]} />
         <meshBasicMaterial color="#59f0a2" />
       </mesh>
+      </group>
+      </Interactive>
 
       {/* ---------------- audio interface (Volt 2), centred under the
           monitor ---------------- */}
@@ -762,7 +762,9 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
 
       {/* ---------------- room dressing (kenney) ------------------------ */}
       {/* click the lamp to switch day ↔ night */}
-      <FloorLamp position={[-2520, -960, 1780]} rotation={[0, 0.68, 0]} mood={mood} onToggle={onToggleMood} />
+      <Interactive>
+        <FloorLamp position={[-2520, -960, 1780]} rotation={[0, 0.68, 0]} mood={mood} onToggle={onToggleMood} />
+      </Interactive>
       {/* 1.5×, pulled off the back wall so the stand's rear leg clears it */}
       <HeadlessGuitar position={[2350, -960, -1450]} rotation={[0, -0.65, 0]} scale={1.5} />
       {/* Togo-style lounge chair at 1.5×, set diagonally in the front-left
@@ -788,7 +790,23 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
         position={[DISPLAY.cx, DISPLAY.cy, DISPLAY.frontZ + 1]}
         zIndexRange={[5, 0]}
       >
-          <div className="lp-screen-html">
+          <div
+            className="lp-screen-html"
+            onPointerEnter={() => {
+              screenHover.current = true
+            }}
+            onPointerLeave={() => {
+              screenHover.current = false
+            }}
+            // the live screen covers the display: in the room view a click
+            // anywhere on it (links included) flies in instead
+            onClickCapture={(e) => {
+              if (!isAtRoom()) return
+              e.preventDefault()
+              e.stopPropagation()
+              onEnter()
+            }}
+          >
             <div className="lp-screen">
               <div className="lp-apps">
                 <TerminalApp

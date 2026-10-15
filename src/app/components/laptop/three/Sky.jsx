@@ -2,19 +2,21 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { createPortal, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { canvasTexture, rng } from './props/shapes'
+import { FOV, DEG, pointInOpeningShot, roomDistance } from './pose'
 
 /*
  * Outdoor half of the day/night mood (World3D's MOOD has the indoor
- * lights): a backdrop of 3D clouds drifting behind the floating room, the sun — or by
- * night the moon — up past the left wall, and the directional light that
- * comes from it through the window. Everything reads `mood.current.t`
- * (0 day → 1 night) in its own useFrame.
+ * lights): a backdrop of 3D clouds drifting behind the floating room, the
+ * sun — or by night the moon — in the sky up-left of the room, and the
+ * directional light that comes in through the window. Everything reads
+ * `mood.current.t` (0 day → 1 night) in its own useFrame.
  */
 
-// Sun/moon placement: up and out past the left wall, on a line through the
-// window centre to a spot on the floor, so the light, the window and the
-// visible disc agree. Close enough to the room to sit inside the opening
-// shot's frame (just beyond the left wall's top-front corner).
+// The light: from up and out past the left wall, on a line through the
+// window to a spot on the floor, so the window throws its patch of light.
+// The visible sun/moon disc is placed separately (see SunMoon): from the
+// opening shot's corner-on angle anything out past the left wall would be
+// hidden behind the room, and the disc doubles as the day/night toggle.
 export const SUN_TARGET = new THREE.Vector3(-1000, -960, -200)
 // the point in the window opening the sun shines through (its lower part)
 export const WINDOW_CENTRE = new THREE.Vector3(-2800, 550, 0)
@@ -50,8 +52,22 @@ const occludedSkyClick = (e, scene) => {
     .some(({ object }) => object.isMesh && object.visible && object.renderOrder >= 0 && object.material?.depthWrite !== false)
 }
 
+// where the disc sits in the opening shot (NDC), and how big it looks
+const DISC_AT = { wide: [-0.62, 0.6], tall: [-0.55, 0.5] }
+const DISC_BEYOND = 20000 // past the look target, well behind the room
+const DISC_NDC_R = 0.035 // apparent radius, as a fraction of the half-height
+
 export const SunMoon = ({ mood, onToggle, shadowSize = 2048 }) => {
-  const { scene } = useThree()
+  const { scene, size } = useThree()
+  // park the disc in open sky for this viewport's opening framing, sized
+  // so it looks the same however far out that puts it
+  const disc = useMemo(() => {
+    const [nx, ny] = size.width < size.height ? DISC_AT.tall : DISC_AT.wide
+    const pos = pointInOpeningShot(size.width, size.height, nx, ny, DISC_BEYOND)
+    const dist = roomDistance(size.width, size.height) + DISC_BEYOND
+    const r = DISC_NDC_R * dist * Math.tan((FOV / 2) * DEG)
+    return { pos: pos.toArray(), scale: r / 240 }
+  }, [size.width, size.height])
   const glow = useMemo(() => makeGlow(), [])
   const light = useRef(null)
   const sun = useRef(null)
@@ -111,8 +127,10 @@ export const SunMoon = ({ mood, onToggle, shadowSize = 2048 }) => {
           drifting past paints over the sun/moon, while the room (opaque,
           drawn earlier, depth-written) still hides all three behind it. */}
       <group
-        position={SUN_POS.toArray()}
-        // click the sun or moon to switch day ↔ night, like the lamp
+        position={disc.pos}
+        scale={disc.scale}
+        // click the sun or moon to switch day ↔ night, like the lamp — a
+        // deliberately unmarked easter egg (no outline/marker, just the cursor)
         onClick={(e) => {
           if (occludedSkyClick(e, scene)) return
           e.stopPropagation()

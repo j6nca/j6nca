@@ -1152,7 +1152,12 @@ body:has(.lp-scroll) {
   font-size: 0.75rem;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  opacity: clamp(0, calc(1 - var(--b0, 0) * 5), 1);
+  /* only on the terminal's first page: fades in as the dolly lands, out
+     as soon as the next beat starts (the room view has its own controls) */
+  opacity: min(
+    clamp(0, calc((var(--b0, 0) - 0.85) * 6.67), 1),
+    clamp(0, calc(1 - var(--b1, 0) * 5), 1)
+  );
   pointer-events: none;
 }
 .lp-hint .mouse {

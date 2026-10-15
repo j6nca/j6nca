@@ -25,6 +25,11 @@
   width: 800px;
   height: 500px;
 }
+/* in the room view the whole screen is a "fly in" button */
+.lp-scroll[data-beat="0"] .lp-screen-html,
+.lp-scroll[data-beat="0"] .lp-screen-html * {
+  cursor: pointer;
+}
 .lp-screen-html .lp-screen {
   left: 0;
   top: 0;
@@ -158,10 +163,6 @@
   text-shadow: 0 2px 22px rgba(12, 40, 80, 0.45);
 }
 .lp-scroll[data-mood="day"] .lp-caps,
-.lp-scroll[data-mood="day"] .lp-hint,
 .lp-scroll[data-mood="day"] .lp-foot {
   color: rgba(12, 32, 62, 0.78);
-}
-.lp-scroll[data-mood="day"] .lp-hint .mouse {
-  border-color: rgba(12, 32, 62, 0.6);
 }

@@ -2,6 +2,7 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Canvas } from '@react-three/fiber'
+import { DEFAULT_ZOOM } from './three/pose'
 import World3D from './three/World3D'
 import TerminalApp from './TerminalApp'
 import WaypointApp from './WaypointApp'
@@ -17,9 +18,11 @@ import SplitFlap from '../SplitFlap'
  * and the camera are three.js (World3D); the laptop screen's content is
  * real DOM attached in 3D, so every app keeps working unchanged.
  *
- * The story advances in 5 discrete "beats" — any scroll intent (wheel
- * burst, touch swipe, arrow key) tweens the scene to the next/previous
- * beat. Each beat's 0→1 progress is published as a CSS var (--b0..--b4)
+ * The story advances in 5 discrete "beats". In the room view (beat 0) the
+ * wheel / a vertical drag zooms and a horizontal swipe or drag pans; clicking
+ * (tapping) the monitor flies in. From there any scroll intent (wheel burst,
+ * touch swipe, arrow key) tweens the scene to the next/previous beat, and
+ * scrolling back past the first page returns to the room. Each beat's 0→1 progress is published as a CSS var (--b0..--b4)
  * that all content animation derives from; World3D reads the same state
  * through `subscribe` and drives the camera, the lid hinge and the rack
  * LEDs from it.
@@ -53,7 +56,6 @@ import SplitFlap from '../SplitFlap'
 
 const BANDS = 5
 // opening-shot framing: a distance multiplier, 0.8 = 20% closer than wide
-const DEFAULT_ZOOM = 0.8
 
 const CAPTIONS = [
   '00 — the room',
@@ -134,6 +136,9 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
 
   const openDetail = useCallback((id) => navRef.current?.open(id), [])
   const closeDetail = useCallback(() => navRef.current?.close(), [])
+  // click/tap the monitor in the room view to fly in to the terminal
+  const enterScreen = useCallback(() => navRef.current?.enter(), [])
+  const isAtRoom = useCallback(() => navRef.current?.atRoom() ?? false, [])
   // opening-shot pan/zoom state (drag, horizontal trackpad swipe, pinch
   // or +/- keys), clamped to sane limits
   const panRef = useRef({ yaw: 0, target: 0, zoom: DEFAULT_ZOOM, zoomTarget: DEFAULT_ZOOM })
@@ -199,6 +204,7 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     let lastStepT = 0
     let touchY = null
     let touchDone = false
+    let touchLastY = 0
 
     // Project detail: `detail` is the open pane id (null when closed), `dp`
     // its 0→1 progress, tweened on its own clock so a beat tween and a detail
@@ -312,7 +318,18 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
       if (!detail || (dAnimating && dTarget === 0)) return
       tweenDetail(0)
     }
-    navRef.current = { open, close }
+    // the room view: at rest on (or heading back to) beat 0, nothing open
+    const atRoom = () => !resetting && !detail && (animating ? target === 0 : Math.round(raw) === 0)
+    // put the opening shot back to its default angle + zoom — on the way
+    // in, so the camera always comes back out to the default view
+    const resetPan = () => {
+      panRef.current.target = 0
+      panRef.current.zoomTarget = DEFAULT_ZOOM
+    }
+    const enter = () => {
+      if (atRoom() && !animating) step(1)
+    }
+    navRef.current = { open, close, enter, atRoom }
 
     // End of the story: the camera pulls back over the desk and out to the
     // room's opening shot (World3D follows --b0 down), then the story
@@ -353,10 +370,12 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
         return
       }
       const base = animating ? target : Math.round(raw)
+      if (base === 0 && dir > 0) resetPan()
       if (dir > 0 && base >= BANDS) {
         if (animating) return
         animating = true
         resetting = true
+        resetPan()
         root.dataset.beat = '0'
         animStart = performance.now()
         resetClock.reset()
@@ -394,17 +413,18 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     const STEP_REFRACTORY = 250
     const onWheel = (e) => {
       e.preventDefault()
-      // pinch-gesture (ctrl/cmd + wheel) zooms the opening shot
-      if ((e.ctrlKey || e.metaKey) && raw < 0.5) {
-        panRef.current.zoomTarget = clamp(panRef.current.zoomTarget * Math.exp(e.deltaY * 0.002), 0.45, 2.4)
+      // In the room view the wheel zooms (and horizontal swipes pan) the
+      // opening shot; clicking the monitor is what flies in. Once in the
+      // terminal, scroll steps through its pages as before.
+      if (atRoom()) {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          panRef.current.target = clamp(panRef.current.target - e.deltaX * 0.12, -60, 60)
+        } else {
+          panRef.current.zoomTarget = clamp(panRef.current.zoomTarget * Math.exp(e.deltaY * 0.0015), 0.45, 2.4)
+        }
         return
       }
-      // horizontal trackpad swipes pan the opening shot instead of
-      // advancing the story — only while the camera is still there
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && raw < 0.5) {
-        panRef.current.target = clamp(panRef.current.target - e.deltaX * 0.12, -60, 60)
-        return
-      }
+      if (resetting) return
       const now = performance.now()
       const gap = now - lastWheelT
       lastWheelT = now
@@ -427,12 +447,21 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
 
     const onTouchStart = (e) => {
       touchY = e.touches[0].clientY
+      touchLastY = touchY
       touchDone = false
     }
     const onTouchMove = (e) => {
       e.preventDefault()
-      if (touchDone || touchY == null) return
-      const dy = touchY - e.touches[0].clientY
+      if (touchY == null) return
+      const y = e.touches[0].clientY
+      // room view: a vertical drag zooms (up = closer); tap the monitor to go in
+      if (atRoom()) {
+        panRef.current.zoomTarget = clamp(panRef.current.zoomTarget * Math.exp((y - touchLastY) * 0.004), 0.45, 2.4)
+        touchLastY = y
+        return
+      }
+      if (touchDone) return
+      const dy = touchY - y
       if (Math.abs(dy) > 45) {
         touchDone = true
         step(dy > 0 ? 1 : -1)
@@ -544,6 +573,8 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
               night={night}
               onToggleMood={toggleMood}
               lowPower={lowPower}
+              onEnter={enterScreen}
+              isAtRoom={isAtRoom}
             />
           </Canvas>
         )}
