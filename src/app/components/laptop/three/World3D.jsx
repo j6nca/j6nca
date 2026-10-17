@@ -581,27 +581,34 @@ const World3D = ({ subscribe, panRef, data, contributions, onOpen, onClose, nigh
     const u0 = smooth(seg(b0, 0.06, 0.94))
     const uk = smooth(seg(kb, 0.04, 0.46))
 
-    // pan + zoom are opening-shot only: both fade out once the dolly starts
+    // pan + zoom are opening-shot only: the dolly flies a straight line from
+    // the panned/zoomed room shot to the screen, so whatever angle the user
+    // left the room at blends away without swinging back through the default
     pan.current.yaw = lerp(pan.current.yaw, pan.current.target, 0.12)
     pan.current.zoom = lerp(pan.current.zoom, pan.current.zoomTarget, 0.1)
-    const fade = 1 - smooth(seg(b0, 0.1, 0.75))
-    const zScale = 1 + (pan.current.zoom - 1) * fade
+    // once at the screen the room shot no longer shows — reset it here so the
+    // camera always comes back out to the default opening shot
+    if (u0 === 1) {
+      pan.current.yaw = pan.current.target = 0
+      pan.current.zoom = pan.current.zoomTarget = DEFAULT_ZOOM
+    }
 
+    // the room shot: orbit the default pose around its look point by the pan
     const poseRoom = POSE_ROOM
-    let pos = mix3(posOf(poseRoom, dRoom * zScale), posScreen, u0)
+    let roomPos = posOf(poseRoom, dRoom * pan.current.zoom)
+    const th = pan.current.yaw * DEG
+    if (th !== 0) {
+      const vx = roomPos[0] - poseRoom.look[0]
+      const vz = roomPos[2] - poseRoom.look[2]
+      const c = Math.cos(th)
+      const s = Math.sin(th)
+      roomPos = [poseRoom.look[0] + vx * c + vz * s, roomPos[1], poseRoom.look[2] - vx * s + vz * c]
+    }
+
+    let pos = mix3(roomPos, posScreen, u0)
     let look = mix3(poseRoom.look, screenLook, u0)
     pos = mix3(pos, posOf(POSE_KEYS, dKeys), uk)
     look = mix3(look, POSE_KEYS.look, uk)
-
-    // drag pan: orbit the camera around the look point
-    const th = pan.current.yaw * DEG * fade
-    if (th !== 0) {
-      const vx = pos[0] - look[0]
-      const vz = pos[2] - look[2]
-      const c = Math.cos(th)
-      const s = Math.sin(th)
-      pos = [look[0] + vx * c + vz * s, pos[1], look[2] - vx * s + vz * c]
-    }
 
     camera.position.set(pos[0], pos[1], pos[2])
     camera.lookAt(look[0], look[1], look[2])

@@ -320,8 +320,7 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
     }
     // the room view: at rest on (or heading back to) beat 0, nothing open
     const atRoom = () => !resetting && !detail && (animating ? target === 0 : Math.round(raw) === 0)
-    // put the opening shot back to its default angle + zoom — on the way
-    // in, so the camera always comes back out to the default view
+    // put the opening shot back to its default angle + zoom (the outro)
     const resetPan = () => {
       panRef.current.target = 0
       panRef.current.zoomTarget = DEFAULT_ZOOM
@@ -370,7 +369,13 @@ const LaptopScene = ({ data, contributions, mobileHref }) => {
         return
       }
       const base = animating ? target : Math.round(raw)
-      if (base === 0 && dir > 0) resetPan()
+      // flying in: freeze the opening shot where it is, so the dolly starts
+      // from the current angle + zoom (World3D fades both out on the way in
+      // and resets them once the camera reaches the screen)
+      if (base === 0 && dir > 0) {
+        panRef.current.target = panRef.current.yaw
+        panRef.current.zoomTarget = panRef.current.zoom
+      }
       if (dir > 0 && base >= BANDS) {
         if (animating) return
         animating = true
