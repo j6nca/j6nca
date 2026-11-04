@@ -51,7 +51,11 @@ export default function EditorialHome({ data }) {
 
   return (
     <div className={`editorial-site ${scrollProgress > .85 ? "editorial-scrolled" : ""}`} style={{ "--cloud-progress": scrollProgress }}>
-      <div className="editorial-cloud-transition" aria-hidden={scrollProgress > .85} style={{ left: `${50 - 43 * scrollProgress}%`, top: `${48 - 42 * scrollProgress}%`, transform: `translate(-50%, -50%) scale(${1 - .955 * scrollProgress})`, opacity: 1 - Math.max(0, (scrollProgress - .82) / .18) }}>
+      <div
+        className="editorial-cloud-transition"
+        aria-hidden={scrollProgress > .85}
+        style={{ opacity: 1 - scrollProgress }}
+      >
         <WordCloud />
       </div>
       <header className="editorial-header">
