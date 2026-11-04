@@ -75,9 +75,11 @@ export default function EditorialHome({ data }) {
   const work = data.work?.slice(0, 3) || []
 
   return (
-    <div className="editorial-site">
-      <LimestoneEntrance />
-      <div className="editorial-cloud-transition" aria-hidden={stage !== 0}>\n        <WordCloud />\n      </div>\n      <header className="editorial-header">
+    <div className={`editorial-site editorial-stage-${stage}`}>
+      <div className="editorial-cloud-transition" aria-hidden={stage !== 0}>
+        <WordCloud />
+      </div>
+      <header className="editorial-header">
         <a className="editorial-logo" href="#top" onClick={e => { e.preventDefault(); goTo(0) }} aria-label="Return to introduction">j6n<span>.</span></a>
         <nav aria-label="Primary navigation">
           <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }}>Work</a>
@@ -93,7 +95,6 @@ export default function EditorialHome({ data }) {
       <main className="editorial-stage-track" style={{ transform: `translateY(-${stage * 100}dvh)` }}>
         <section className="editorial-hero editorial-panel" aria-labelledby="editorial-heading">
           <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
-          <WordCloud />
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
             <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }} className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
