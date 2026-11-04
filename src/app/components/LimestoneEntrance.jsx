@@ -54,11 +54,17 @@ export default function LimestoneEntrance() {
         <div className="limestone-destination" style={{ opacity: reveal }}>
           <span>BUILT OUT OF CURIOSITY.</span>
         </div>
-        <svg className="limestone-monument" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The letters j6n carved all the way through a weathered limestone wall" style={{ transform: `scale(${scale}) translateX(${-approach * 4}%)` }}>
+        <svg className="limestone-monument" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The letters j6n carved all the way through a weathered limestone wall" style={{ transform: `scale(${scale})` }}>
           <defs>
             <filter id="limestone-grain" x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.018 0.028" numOctaves="4" seed="12" stitchTiles="stitch" result="grain" />
-              <feColorMatrix in="grain" type="saturate" values="0" />
+              <feTurbulence type="fractalNoise" baseFrequency=".012 .019" numOctaves="5" seed="12" stitchTiles="stitch" result="grain" />
+              <feColorMatrix in="grain" type="saturate" values="0" result="mono" />
+              <feComponentTransfer in="mono"><feFuncR type="gamma" amplitude="1" exponent="2.2" offset="0"/><feFuncG type="gamma" amplitude="1" exponent="2.2" offset="0"/><feFuncB type="gamma" amplitude="1" exponent="2.2" offset="0"/></feComponentTransfer>
+            </filter>
+            <filter id="limestone-pitting" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency=".15" numOctaves="3" seed="21" />
+              <feColorMatrix type="saturate" values="0" />
+              <feComponentTransfer><feFuncA type="discrete" tableValues="0 0 .08 .22"/></feComponentTransfer>
             </filter>
             <linearGradient id="limestone-light" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0%" stopColor="var(--limestone-bright)" />
@@ -71,8 +77,9 @@ export default function LimestoneEntrance() {
             </mask>
           </defs>
           <rect width="1600" height="900" fill="url(#limestone-light)" mask="url(#limestone-cutout)" />
-          <rect width="1600" height="900" fill="var(--limestone-grain)" filter="url(#limestone-grain)" opacity=".20" mask="url(#limestone-cutout)" />
-          <text x="800" y="665" textAnchor="middle" fontFamily="Arial Black, Arial, sans-serif" fontWeight="900" fontSize="790" letterSpacing="-58" fill="none" stroke="var(--limestone-edge)" strokeWidth="12" opacity=".8">j6n</text>
+          <rect width="1600" height="900" fill="var(--limestone-grain)" filter="url(#limestone-grain)" opacity=".38" mask="url(#limestone-cutout)" />
+          <rect width="1600" height="900" fill="var(--limestone-grain)" filter="url(#limestone-pitting)" opacity=".5" mask="url(#limestone-cutout)" />
+          <text x="800" y="665" textAnchor="middle" fontFamily="Arial Black, Arial, sans-serif" fontWeight="900" fontSize="790" letterSpacing="-58" fill="none" stroke="var(--limestone-edge)" strokeWidth="17" opacity=".65">j6n</text>
         </svg>
         <div className="limestone-caption" style={{ opacity: 1 - clamp(progress * 5) }}>SCROLL TO ENTER <span aria-hidden="true">↓</span></div>
       </div>
