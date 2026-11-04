@@ -67,3 +67,21 @@ html:has(.editorial-site),body:has(.editorial-site){overflow:hidden;height:100%;
 .editorial-stage-3 .editorial-about{padding-bottom:110px}
 @media(max-width:700px){.editorial-hero{padding-top:45px}.editorial-hero-bottom{font-size:14px}.editorial-cloud-transition{top:43%}.editorial-wordcloud{margin:0}.editorial-wordcloud svg{max-height:48dvh}.editorial-header{padding:18px 20px}.editorial-panel{padding-top:105px}}
 @media(prefers-reduced-motion:reduce){.editorial-stage-track,.editorial-cloud-transition,.editorial-header{transition:none!important}}
+
+/* Native scrolling replaces the experimental locked-stage navigation. */
+html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;overscroll-behavior:auto;scroll-behavior:smooth}
+.editorial-site{height:auto;min-height:100vh;overflow:visible}
+.editorial-site main{height:auto;transform:none!important;transition:none}
+.editorial-panel{height:auto;min-height:0;max-width:1320px;overflow:visible;overscroll-behavior:auto;padding-top:95px;padding-bottom:115px;scroll-margin-top:95px}
+.editorial-hero{min-height:100dvh;max-width:1320px;justify-content:space-between;padding-top:clamp(35px,7dvh,75px);padding-bottom:90px}
+.editorial-header{position:fixed;z-index:20;top:0;left:0;right:0;max-width:none;background:var(--paper);border-bottom:1px solid var(--rule);opacity:var(--cloud-progress);transform:translateY(calc((1 - var(--cloud-progress)) * -100%));pointer-events:none;visibility:visible;transition:none}
+.editorial-scrolled .editorial-header{pointer-events:auto}
+.editorial-cloud-transition{position:fixed;z-index:21;width:min(90vw,1120px);pointer-events:none;transform-origin:center;transition:none}
+.editorial-cloud-transition .editorial-wordcloud{margin:0}
+.editorial-cloud-transition .editorial-wordcloud svg{max-height:65dvh}
+.editorial-scrolled .editorial-cloud-transition{pointer-events:none}
+.editorial-footer{display:flex}
+.editorial-stage-next{position:absolute;left:50%;transform:translateX(-50%);bottom:24px;border:0;background:none;cursor:pointer;color:var(--sub)}
+.editorial-hero-bottom{margin-top:auto}
+@media(max-width:700px){.editorial-panel{padding-top:90px;padding-bottom:80px}.editorial-hero{padding-top:40px;padding-bottom:85px}.editorial-cloud-transition .editorial-wordcloud svg{max-height:48dvh}}
+@media(prefers-reduced-motion:reduce){html:has(.editorial-site),body:has(.editorial-site){scroll-behavior:auto}}
