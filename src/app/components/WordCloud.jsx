@@ -12,6 +12,7 @@ const placements = [
   [160, 484], [605, 490], [975, 486],
   [170, 545], [595, 550], [970, 546],
   [220, 604], [745, 604],
+  [360, 330], [800, 390], [1040, 585],
 ]
 
 const normalize = value => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en')
