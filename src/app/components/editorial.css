@@ -89,3 +89,13 @@ html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;ov
 /* Crossfade the stationary introduction into the fixed navbar. */
 .editorial-cloud-transition{top:48%;left:50%;transform:translate(-50%,-50%);transition:none}
 @media(max-width:700px){.editorial-cloud-transition{top:43%}}
+
+/* Word cloud is part of the document, not a fixed overlay. */
+.editorial-cloud-intro{width:min(90vw,1120px);margin:auto;pointer-events:none}
+.editorial-cloud-intro .editorial-wordcloud{width:100%;margin:0 auto}
+.editorial-hero{display:flex;align-items:center;justify-content:center;position:relative;min-height:100dvh;padding-top:45px;padding-bottom:75px}
+.editorial-self-intro{min-height:75dvh;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:24px}
+.editorial-self-intro h2{font-size:clamp(44px,7vw,92px);line-height:1.05;letter-spacing:-.06em;font-weight:500;margin:0}
+.editorial-self-intro p{max-width:680px;font-size:clamp(19px,2.3vw,27px);line-height:1.5;color:var(--sub);margin:0}
+.editorial-self-intro .editorial-text-link{margin-top:12px}
+@media(max-width:700px){.editorial-cloud-intro{width:94vw}.editorial-self-intro{min-height:70dvh}}
