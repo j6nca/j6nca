@@ -27,4 +27,7 @@ export const cloudWords = [
   { text: 'MUSIC', weight: 1 },
   { text: 'CODING', weight: 1 },
   { text: 'COMMUNITY', weight: 1 },
+  { text: 'ESPRESSO', weight: 2 },
+  { text: 'CAFE', weight: 2 },
+  { text: 'CAT', weight: 2 },
 ]
