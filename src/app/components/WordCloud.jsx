@@ -106,7 +106,7 @@ export default function WordCloud() {
 
   return (
     <div className="editorial-wordcloud">
-      <h1 id="editorial-heading" className="editorial-visually-hidden">Built out of curiosity.</h1>
+      <h1 id="editorial-heading" className="editorial-visually-hidden">j6n — a word cloud of interests and ideas</h1>
       <svg viewBox="0 0 1200 660" preserveAspectRatio="xMidYMid meet" role="img" aria-label="j6n formed from unique, horizontal words about engineering, creativity and personal interests">
         <g fontFamily="Arial, Helvetica, sans-serif" fontWeight="800">
           {placements.map(word => (
@@ -121,7 +121,6 @@ export default function WordCloud() {
           ))}
         </g>
       </svg>
-      <p className="editorial-cloud-tagline">Built out of curiosity.</p>
     </div>
   )
 }
