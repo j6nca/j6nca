@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import './editorial.css'
 import WordCloud from './WordCloud'
 
@@ -12,48 +12,23 @@ const featured = [
 
 export default function EditorialHome({ data }) {
   const [theme, setTheme] = useState('light')
-  const [stage, setStage] = useState(0)
-  const stageRef = useRef(0)
-  const locked = useRef(false)
-  const touchStart = useRef(null)
-  const goTo = next => {
-    const target = Math.max(0, Math.min(3, next))
-    if (locked.current || target === stageRef.current) return
-    locked.current = true
-    stageRef.current = target
-    setStage(target)
-    window.setTimeout(() => { locked.current = false }, 850)
-  }
+  const [scrollProgress, setScrollProgress] = useState(0)
   useEffect(() => {
-    const wheel = event => {
-      if (Math.abs(event.deltaY) < 8) return
-      event.preventDefault()
-      if (!locked.current) goTo(stageRef.current + Math.sign(event.deltaY))
+    let frame = 0
+    const update = () => {
+      if (frame) return
+      frame = window.requestAnimationFrame(() => {
+        frame = 0
+        setScrollProgress(Math.min(1, Math.max(0, window.scrollY / Math.max(1, window.innerHeight * .65))))
+      })
     }
-    const keydown = event => {
-      if (['ArrowDown', 'PageDown', ' '].includes(event.key) && !['INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement?.tagName)) {
-        event.preventDefault(); goTo(stageRef.current + 1)
-      } else if (['ArrowUp', 'PageUp'].includes(event.key)) {
-        event.preventDefault(); goTo(stageRef.current - 1)
-      } else if (event.key === 'Home') { event.preventDefault(); goTo(0) }
-      else if (event.key === 'End') { event.preventDefault(); goTo(3) }
-    }
-    const start = event => { touchStart.current = event.touches[0]?.clientY ?? null }
-    const end = event => {
-      if (touchStart.current === null) return
-      const delta = touchStart.current - (event.changedTouches[0]?.clientY ?? touchStart.current)
-      touchStart.current = null
-      if (Math.abs(delta) > 45) goTo(stageRef.current + Math.sign(delta))
-    }
-    window.addEventListener('wheel', wheel, { passive: false })
-    window.addEventListener('keydown', keydown)
-    window.addEventListener('touchstart', start, { passive: true })
-    window.addEventListener('touchend', end, { passive: true })
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
     return () => {
-      window.removeEventListener('wheel', wheel)
-      window.removeEventListener('keydown', keydown)
-      window.removeEventListener('touchstart', start)
-      window.removeEventListener('touchend', end)
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+      if (frame) window.cancelAnimationFrame(frame)
     }
   }, [])
   useEffect(() => {
@@ -75,16 +50,16 @@ export default function EditorialHome({ data }) {
   const work = data.work?.slice(0, 3) || []
 
   return (
-    <div className={`editorial-site editorial-stage-${stage}`}>
-      <div className="editorial-cloud-transition" aria-hidden={stage !== 0}>
+    <div className={`editorial-site ${scrollProgress > .85 ? "editorial-scrolled" : ""}`} style={{ "--cloud-progress": scrollProgress }}>
+      <div className="editorial-cloud-transition" aria-hidden={scrollProgress > .85} style={{ left: `${50 - 43 * scrollProgress}%`, top: `${48 - 42 * scrollProgress}%`, transform: `translate(-50%, -50%) scale(${1 - .955 * scrollProgress})`, opacity: 1 - Math.max(0, (scrollProgress - .82) / .18) }}>
         <WordCloud />
       </div>
       <header className="editorial-header">
-        <a className="editorial-logo" href="#top" onClick={e => { e.preventDefault(); goTo(0) }} aria-label="Return to introduction">j6n<span>.</span></a>
+        <a className="editorial-logo" href="#top" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }} aria-label="Return to introduction">j6n<span>.</span></a>
         <nav aria-label="Primary navigation">
-          <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }}>Work</a>
-          <a href="#writing" onClick={e => { e.preventDefault(); goTo(2) }}>Writing</a>
-          <a href="#about" onClick={e => { e.preventDefault(); goTo(3) }}>About</a>
+          <a href="#work">Work</a>
+          <a href="#writing">Writing</a>
+          <a href="#about">About</a>
           <a href="/resume">Résumé</a>
         </nav>
         <button className="editorial-theme" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title="Toggle color theme">
@@ -92,14 +67,14 @@ export default function EditorialHome({ data }) {
         </button>
       </header>
 
-      <main className="editorial-stage-track" style={{ transform: `translateY(-${stage * 100}dvh)` }}>
+      <main id="top">
         <section className="editorial-hero editorial-panel" aria-labelledby="editorial-heading">
           <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
-            <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }} className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
+            <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
           </div>
-          <button type="button" className="editorial-scroll-note editorial-stage-next" onClick={() => goTo(1)}>SCROLL TO EXPLORE ↓</button>
+          <a href="#work" className="editorial-scroll-note editorial-stage-next">SCROLL TO EXPLORE ↓</a>
         </section>
 
         <section className="editorial-section editorial-panel" id="work" aria-labelledby="work-heading">
@@ -124,7 +99,7 @@ export default function EditorialHome({ data }) {
           <div className="editorial-experience"><h3>Where I&apos;ve worked</h3>{work.map(job => <div className="editorial-job" key={job.name}><strong>{job.name}</strong><span>{job.position}</span></div>)}</div>
         </section>
       </main>
-      <footer className="editorial-footer"><span>© {new Date().getFullYear()} {data.basics?.name || 'Jonathan Ng'}</span><div><a href={`mailto:${data.basics?.email || 'me@j6n.ca'}`}>Email ↗</a><a href="https://github.com/j6nca">GitHub ↗</a><a href="https://linkedin.com/in/j6n">LinkedIn ↗</a></div><a href="#top" onClick={e => { e.preventDefault(); goTo(0) }}>Back to top ↑</a></footer>
+      <footer className="editorial-footer"><span>© {new Date().getFullYear()} {data.basics?.name || 'Jonathan Ng'}</span><div><a href={`mailto:${data.basics?.email || 'me@j6n.ca'}`}>Email ↗</a><a href="https://github.com/j6nca">GitHub ↗</a><a href="https://linkedin.com/in/j6n">LinkedIn ↗</a></div><a href="#top" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }) }}>Back to top ↑</a></footer>
     </div>
   )
 }
