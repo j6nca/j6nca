@@ -1,8 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './editorial.css'
-import LimestoneEntrance from './LimestoneEntrance'
 import WordCloud from './WordCloud'
 
 const featured = [
@@ -13,6 +12,50 @@ const featured = [
 
 export default function EditorialHome({ data }) {
   const [theme, setTheme] = useState('light')
+  const [stage, setStage] = useState(0)
+  const stageRef = useRef(0)
+  const locked = useRef(false)
+  const touchStart = useRef(null)
+  const goTo = next => {
+    const target = Math.max(0, Math.min(3, next))
+    if (locked.current || target === stageRef.current) return
+    locked.current = true
+    stageRef.current = target
+    setStage(target)
+    window.setTimeout(() => { locked.current = false }, 850)
+  }
+  useEffect(() => {
+    const wheel = event => {
+      if (Math.abs(event.deltaY) < 8) return
+      event.preventDefault()
+      if (!locked.current) goTo(stageRef.current + Math.sign(event.deltaY))
+    }
+    const keydown = event => {
+      if (['ArrowDown', 'PageDown', ' '].includes(event.key) && !['INPUT', 'TEXTAREA', 'BUTTON'].includes(document.activeElement?.tagName)) {
+        event.preventDefault(); goTo(stageRef.current + 1)
+      } else if (['ArrowUp', 'PageUp'].includes(event.key)) {
+        event.preventDefault(); goTo(stageRef.current - 1)
+      } else if (event.key === 'Home') { event.preventDefault(); goTo(0) }
+      else if (event.key === 'End') { event.preventDefault(); goTo(3) }
+    }
+    const start = event => { touchStart.current = event.touches[0]?.clientY ?? null }
+    const end = event => {
+      if (touchStart.current === null) return
+      const delta = touchStart.current - (event.changedTouches[0]?.clientY ?? touchStart.current)
+      touchStart.current = null
+      if (Math.abs(delta) > 45) goTo(stageRef.current + Math.sign(delta))
+    }
+    window.addEventListener('wheel', wheel, { passive: false })
+    window.addEventListener('keydown', keydown)
+    window.addEventListener('touchstart', start, { passive: true })
+    window.addEventListener('touchend', end, { passive: true })
+    return () => {
+      window.removeEventListener('wheel', wheel)
+      window.removeEventListener('keydown', keydown)
+      window.removeEventListener('touchstart', start)
+      window.removeEventListener('touchend', end)
+    }
+  }, [])
   useEffect(() => {
     const stored = localStorage.getItem('j6n-theme')
     const initial = stored === 'light' || stored === 'dark'
@@ -32,14 +75,16 @@ export default function EditorialHome({ data }) {
   const work = data.work?.slice(0, 3) || []
 
   return (
-    <div className="editorial-site">
-      <LimestoneEntrance />
+    <div className={`editorial-site editorial-stage-${stage}`}>
+      <div className="editorial-cloud-transition" aria-hidden={stage !== 0}>
+        <WordCloud />
+      </div>
       <header className="editorial-header">
-        <a className="editorial-logo" href="/" aria-label="Jonathan Ng home">j6n<span>.</span></a>
+        <a className="editorial-logo" href="#top" onClick={e => { e.preventDefault(); goTo(0) }} aria-label="Return to introduction">j6n<span>.</span></a>
         <nav aria-label="Primary navigation">
-          <a href="#work">Work</a>
-          <a href="#writing">Writing</a>
-          <a href="#about">About</a>
+          <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }}>Work</a>
+          <a href="#writing" onClick={e => { e.preventDefault(); goTo(2) }}>Writing</a>
+          <a href="#about" onClick={e => { e.preventDefault(); goTo(3) }}>About</a>
           <a href="/resume">Résumé</a>
         </nav>
         <button className="editorial-theme" type="button" onClick={toggleTheme} aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`} title="Toggle color theme">
@@ -47,18 +92,17 @@ export default function EditorialHome({ data }) {
         </button>
       </header>
 
-      <main>
-        <section className="editorial-hero" aria-labelledby="editorial-heading">
+      <main className="editorial-stage-track" style={{ transform: `translateY(-${stage * 100}dvh)` }}>
+        <section className="editorial-hero editorial-panel" aria-labelledby="editorial-heading">
           <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
-          <WordCloud />
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
-            <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
+            <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }} className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
           </div>
-          <div className="editorial-scroll-note" aria-hidden="true">SCROLL TO EXPLORE ↓</div>
+          <button type="button" className="editorial-scroll-note editorial-stage-next" onClick={() => goTo(1)}>SCROLL TO EXPLORE ↓</button>
         </section>
 
-        <section className="editorial-section" id="work" aria-labelledby="work-heading">
+        <section className="editorial-section editorial-panel" id="work" aria-labelledby="work-heading">
           <div className="editorial-section-heading"><div><span className="editorial-number">01 / SELECTED WORK</span><h2 id="work-heading">Things I&apos;ve built.</h2></div><a href="https://github.com/j6nca" target="_blank" rel="noreferrer">More on GitHub ↗</a></div>
           <div className="editorial-projects">
             {featured.map((project, index) => (
@@ -70,17 +114,17 @@ export default function EditorialHome({ data }) {
           </div>
         </section>
 
-        <section className="editorial-section editorial-writing" id="writing" aria-labelledby="writing-heading">
+        <section className="editorial-section editorial-panel editorial-writing" id="writing" aria-labelledby="writing-heading">
           <div className="editorial-section-heading"><div><span className="editorial-number">02 / WRITING & NOTES</span><h2 id="writing-heading">Notes from the field.</h2></div></div>
           <div className="editorial-writing-row"><p>Thoughts on engineering, building things, and whatever else catches my curiosity.</p><a className="editorial-text-link" href="https://blog.j6n.ca" target="_blank" rel="noreferrer">Read the blog ↗</a></div>
         </section>
 
-        <section className="editorial-section editorial-about" id="about" aria-labelledby="about-heading">
+        <section className="editorial-section editorial-panel editorial-about" id="about" aria-labelledby="about-heading">
           <div><span className="editorial-number">03 / A LITTLE ABOUT ME</span><h2 id="about-heading">Curiosity is the common thread.</h2><p>Most days I work on infrastructure, observability, and developer experience. Outside of that, I&apos;m usually experimenting with open-source software, keyboards, games, or my homelab.</p><a className="editorial-text-link" href="/resume">View my résumé ↗</a></div>
           <div className="editorial-experience"><h3>Where I&apos;ve worked</h3>{work.map(job => <div className="editorial-job" key={job.name}><strong>{job.name}</strong><span>{job.position}</span></div>)}</div>
         </section>
       </main>
-      <footer className="editorial-footer"><span>© {new Date().getFullYear()} {data.basics?.name || 'Jonathan Ng'}</span><div><a href={`mailto:${data.basics?.email || 'me@j6n.ca'}`}>Email ↗</a><a href="https://github.com/j6nca">GitHub ↗</a><a href="https://linkedin.com/in/j6n">LinkedIn ↗</a></div><a href="#top" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Back to top ↑</a></footer>
+      <footer className="editorial-footer"><span>© {new Date().getFullYear()} {data.basics?.name || 'Jonathan Ng'}</span><div><a href={`mailto:${data.basics?.email || 'me@j6n.ca'}`}>Email ↗</a><a href="https://github.com/j6nca">GitHub ↗</a><a href="https://linkedin.com/in/j6n">LinkedIn ↗</a></div><a href="#top" onClick={e => { e.preventDefault(); goTo(0) }}>Back to top ↑</a></footer>
     </div>
   )
 }
