@@ -40,4 +40,12 @@ export const cloudWords = [
   { text: 'THANOSLABS', weight: 2 },
   { text: 'WOOD', weight: 1 },
   { text: 'FASHION', weight: 2 },
+  { text: 'U/L', weight: 1 },
+  { text: 'UI/UX', weight: 2 },
+  { text: 'SELF-HOSTED', weight: 2 },
+  { text: 'PODCASTS', weight: 1 },
+  { text: 'MEMORIES', weight: 2 },
+  { text: 'WALKS', weight: 1 },
+  { text: 'RUCKING', weight: 1 },
+  { text: 'COOKING', weight: 2 },
 ]
