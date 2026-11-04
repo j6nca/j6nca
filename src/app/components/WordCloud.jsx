@@ -1,7 +1,7 @@
 import { cloudWords } from './wordCloudWords'
 
 // Deliberately composed rather than repeating a texture.
-// Each term is rendered exactly once; the mask preserves the j6n silhouette.
+// Each term is rendered exactly once, horizontally (no rotation); the mask preserves the j6n silhouette.
 const placements = [
   [165, 92], [585, 88], [980, 98],
   [185, 152], [620, 158], [985, 160],
