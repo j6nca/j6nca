@@ -1,68 +1,121 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { cloudWords } from './wordCloudWords'
 
-// Construct the lettering from complete words, never from a clipping mask.
-// Each column traces a loose j / 6 / n silhouette; every term stays horizontal.
+const WIDTH = 1200
+const HEIGHT = 660
+const GAP = 5
 const normalize = value => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase('en')
-const columns = [
-  { center: 195, width: 285 },
-  { center: 600, width: 375 },
-  { center: 1005, width: 325 },
-]
-const lineHeight = 29
-const top = 48
 
-function placeWords(words) {
-  const groups = [[], [], []]
-  words.forEach((word, index) => groups[index % 3].push(word))
-  return groups.flatMap((group, column) => {
-    const { center, width } = columns[column]
-    return group.map((word, row) => {
-      const count = group.length
-      const progress = count > 1 ? row / (count - 1) : 0
-      // Loose letterform contours, without ever cutting into the text.
-      let offset = 0
-      let available = width
-      if (column === 0) {
-        // j: narrow upright and a gentle hook at the bottom.
-        offset = progress > .78 ? -55 * ((progress - .78) / .22) : 38
-        available = progress < .16 ? width * .66 : width * .8
-      } else if (column === 1) {
-        // 6: upper curve and a broad lower bowl.
-        offset = progress < .3 ? -36 * (1 - progress / .3) : 0
-        available = progress > .4 && progress < .7 ? width * .72 : width
-      } else {
-        // n: left stem, arched top, and rightward lower sweep.
-        offset = progress < .25 ? -25 : 30 * progress
-        available = progress < .3 ? width * .82 : width * .9
+// Pack complete horizontal words *inside* the actual letter strokes.
+// Unlike a clipPath, this rejects any position that would truncate a word.
+function layoutWords(words) {
+  const canvas = document.createElement('canvas')
+  canvas.width = WIDTH
+  canvas.height = HEIGHT
+  const ctx = canvas.getContext('2d', { willReadFrequently: true })
+  if (!ctx) return []
+
+  ctx.fillStyle = '#fff'
+  ctx.fillRect(0, 0, WIDTH, HEIGHT)
+  ctx.fillStyle = '#000'
+  ctx.font = '900 610px Arial, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'alphabetic'
+  const glyphWidth = ctx.measureText('j6n').width
+  ctx.save()
+  ctx.translate(WIDTH / 2, 0)
+  ctx.scale(Math.min(1, 1090 / glyphWidth), 1)
+  ctx.fillText('j6n', 0, 525)
+  ctx.restore()
+
+  const pixels = ctx.getImageData(0, 0, WIDTH, HEIGHT).data
+  const stride = WIDTH + 1
+  const integral = new Uint32Array(stride * (HEIGHT + 1))
+  for (let y = 1; y <= HEIGHT; y++) {
+    let row = 0
+    for (let x = 1; x <= WIDTH; x++) {
+      const i = ((y - 1) * WIDTH + x - 1) * 4
+      row += pixels[i] < 80 ? 1 : 0
+      integral[y * stride + x] = integral[(y - 1) * stride + x] + row
+    }
+  }
+  const ink = (x, y, w, h) => {
+    const x2 = x + w
+    const y2 = y + h
+    return integral[y2 * stride + x2] - integral[y * stride + x2] -
+      integral[y2 * stride + x] + integral[y * stride + x]
+  }
+
+  const placed = []
+  const ordered = [...words].sort((a, b) =>
+    b.weight - a.weight || b.text.length - a.text.length
+  )
+  const intersects = (a, b) =>
+    a.x < b.x + b.width + GAP && a.x + a.width + GAP > b.x &&
+    a.y < b.y + b.height + GAP && a.y + a.height + GAP > b.y
+
+  ordered.forEach((word, index) => {
+    const preferred = word.weight === 3 ? 43 : word.weight === 2 ? 32 : 25
+    let best = null
+    for (let fontSize = preferred; fontSize >= 12 && !best; fontSize -= 2) {
+      ctx.font = `800 ${fontSize}px Arial, sans-serif`
+      const width = Math.ceil(ctx.measureText(word.text).width) + 4
+      const height = Math.ceil(fontSize * 1.05)
+      if (width >= WIDTH) continue
+      const candidates = []
+      // Offset each search to avoid a visually mechanical row/column grid.
+      const xStart = (index * 17) % 9
+      const yStart = (index * 11) % 9
+      for (let y = yStart; y + height < HEIGHT; y += 9) {
+        for (let x = xStart; x + width < WIDTH; x += 9) {
+          const box = { x, y, width, height }
+          if (placed.some(other => intersects(box, other))) continue
+          // Every pixel of the word's bounding box must be inside the glyph.
+          if (ink(x, y, width, height) < width * height * .985) continue
+          // Prefer a spread across the silhouette, not vertical stacks.
+          const nearest = placed.length
+            ? Math.min(...placed.map(other => Math.hypot(
+                x + width / 2 - (other.x + other.width / 2),
+                y + height / 2 - (other.y + other.height / 2)
+              )))
+            : 200
+          const score = nearest + ((x * 13 + y * 7 + index * 19) % 31)
+          candidates.push({ ...box, score, fontSize })
+        }
       }
-      const preferred = word.weight === 3 ? 33 : word.weight === 2 ? 27 : 22
-      // Approximate text width conservatively so long terms fit entirely.
-      const estimatedUnits = [...word.text].reduce((sum, char) =>
-        sum + (char === ' ' ? .34 : char === 'I' || char === 'L' ? .38 : .68), 0)
-      const size = Math.max(14, Math.min(preferred, available / Math.max(estimatedUnits, 1)))
-      return { ...word, x: center + offset, y: top + row * lineHeight, size }
-    })
+      if (candidates.length) {
+        candidates.sort((a, b) => b.score - a.score)
+        best = candidates[0]
+      }
+    }
+    if (best) placed.push({ ...best, ...word })
   })
+  return placed
 }
 
 export default function WordCloud() {
-  const uniqueWords = cloudWords.filter((word, index, words) =>
-    words.findIndex(candidate => normalize(candidate.text) === normalize(word.text)) === index
-  )
-  const placements = placeWords(uniqueWords)
+  const [placements, setPlacements] = useState([])
+  useEffect(() => {
+    const unique = cloudWords.filter((word, index, words) =>
+      words.findIndex(candidate => normalize(candidate.text) === normalize(word.text)) === index
+    )
+    setPlacements(layoutWords(unique))
+  }, [])
 
   return (
     <div className="editorial-wordcloud">
       <h1 id="editorial-heading" className="editorial-visually-hidden">Built out of curiosity.</h1>
-      <svg viewBox="0 0 1200 660" preserveAspectRatio="xMidYMid meet" role="img" aria-label="j6n shaped from complete, horizontal words about engineering, creativity and personal interests">
+      <svg viewBox="0 0 1200 660" preserveAspectRatio="xMidYMid meet" role="img" aria-label="j6n formed from unique, horizontal words about engineering, creativity and personal interests">
         <g fontFamily="Arial, Helvetica, sans-serif" fontWeight="800">
           {placements.map(word => (
             <text
               key={normalize(word.text)}
-              x={word.x}
-              y={word.y}
+              x={word.x + word.width / 2}
+              y={word.y + word.height * .84}
               textAnchor="middle"
-              fontSize={word.size}
+              fontSize={word.fontSize}
               className={`editorial-cloud-word editorial-cloud-weight-${word.weight}`}
             >{word.text}</text>
           ))}
