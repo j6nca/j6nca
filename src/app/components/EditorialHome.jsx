@@ -96,7 +96,7 @@ export default function EditorialHome({ data }) {
           <WordCloud />
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
-            <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
+            <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }} className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
           </div>
           <button type="button" className="editorial-scroll-note editorial-stage-next" onClick={() => goTo(1)}>SCROLL TO EXPLORE ↓</button>
         </section>
