@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import './editorial.css'
 import LimestoneEntrance from './LimestoneEntrance'
+import WordCloud from './WordCloud'
 
 const featured = [
   { name: 'Seaglass', category: 'Developer tools', description: 'A thoughtful terminal interface for exploring Kubernetes.', url: 'https://github.com/thanoslabs/seaglass', art: 'terminal', mark: '⌘' },
@@ -49,7 +50,7 @@ export default function EditorialHome({ data }) {
       <main>
         <section className="editorial-hero" aria-labelledby="editorial-heading">
           <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
-          <h1 id="editorial-heading">Built out of <em>curiosity.</em></h1>
+          <WordCloud />
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
             <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
