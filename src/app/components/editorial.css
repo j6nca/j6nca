@@ -85,3 +85,7 @@ html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;ov
 .editorial-hero-bottom{margin-top:auto}
 @media(max-width:700px){.editorial-panel{padding-top:90px;padding-bottom:80px}.editorial-hero{padding-top:40px;padding-bottom:85px}.editorial-cloud-transition .editorial-wordcloud svg{max-height:48dvh}}
 @media(prefers-reduced-motion:reduce){html:has(.editorial-site),body:has(.editorial-site){scroll-behavior:auto}}
+
+/* Crossfade the stationary introduction into the fixed navbar. */
+.editorial-cloud-transition{top:48%;left:50%;transform:translate(-50%,-50%);transition:none}
+@media(max-width:700px){.editorial-cloud-transition{top:43%}}
