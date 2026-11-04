@@ -72,7 +72,7 @@ export default function EditorialHome({ data }) {
           <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
           <div className="editorial-hero-bottom">
             <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
-            <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }} className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
+            <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
           </div>
           <a href="#work" className="editorial-scroll-note editorial-stage-next">SCROLL TO EXPLORE ↓</a>
         </section>
