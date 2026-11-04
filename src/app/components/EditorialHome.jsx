@@ -77,7 +77,7 @@ export default function EditorialHome({ data }) {
   return (
     <div className="editorial-site">
       <LimestoneEntrance />
-      <header className="editorial-header">
+      <div className="editorial-cloud-transition" aria-hidden={stage !== 0}>\n        <WordCloud />\n      </div>\n      <header className="editorial-header">
         <a className="editorial-logo" href="#top" onClick={e => { e.preventDefault(); goTo(0) }} aria-label="Return to introduction">j6n<span>.</span></a>
         <nav aria-label="Primary navigation">
           <a href="#work" onClick={e => { e.preventDefault(); goTo(1) }}>Work</a>
