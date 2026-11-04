@@ -46,17 +46,17 @@ export default function EditorialHome({ data }) {
 
       <main>
         <section className="editorial-hero" aria-labelledby="editorial-heading">
-          <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I'M JONATHAN — BASED IN TORONTO</p>
+          <p className="editorial-kicker"><span className="editorial-status" /> HELLO, I&apos;M JONATHAN — BASED IN TORONTO</p>
           <h1 id="editorial-heading">Making complex things feel <em>simple.</em></h1>
           <div className="editorial-hero-bottom">
-            <p>I'm a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
+            <p>I&apos;m a site reliability engineer who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
             <a href="#work" className="editorial-text-link">Explore selected work <span aria-hidden="true">↘</span></a>
           </div>
           <div className="editorial-scroll-note" aria-hidden="true">SCROLL TO EXPLORE ↓</div>
         </section>
 
         <section className="editorial-section" id="work" aria-labelledby="work-heading">
-          <div className="editorial-section-heading"><div><span className="editorial-number">01 / SELECTED WORK</span><h2 id="work-heading">Things I've built.</h2></div><a href="https://github.com/j6nca" target="_blank" rel="noreferrer">More on GitHub ↗</a></div>
+          <div className="editorial-section-heading"><div><span className="editorial-number">01 / SELECTED WORK</span><h2 id="work-heading">Things I&apos;ve built.</h2></div><a href="https://github.com/j6nca" target="_blank" rel="noreferrer">More on GitHub ↗</a></div>
           <div className="editorial-projects">
             {featured.map((project, index) => (
               <a className="editorial-project" key={project.name} href={project.url} target="_blank" rel="noreferrer">
@@ -73,8 +73,8 @@ export default function EditorialHome({ data }) {
         </section>
 
         <section className="editorial-section editorial-about" id="about" aria-labelledby="about-heading">
-          <div><span className="editorial-number">03 / A LITTLE ABOUT ME</span><h2 id="about-heading">Curiosity is the common thread.</h2><p>Most days I work on infrastructure, observability, and developer experience. Outside of that, I'm usually experimenting with open-source software, keyboards, games, or my homelab.</p><a className="editorial-text-link" href="/resume">View my résumé ↗</a></div>
-          <div className="editorial-experience"><h3>Where I've worked</h3>{work.map(job => <div className="editorial-job" key={job.name}><strong>{job.name}</strong><span>{job.position}</span></div>)}</div>
+          <div><span className="editorial-number">03 / A LITTLE ABOUT ME</span><h2 id="about-heading">Curiosity is the common thread.</h2><p>Most days I work on infrastructure, observability, and developer experience. Outside of that, I&apos;m usually experimenting with open-source software, keyboards, games, or my homelab.</p><a className="editorial-text-link" href="/resume">View my résumé ↗</a></div>
+          <div className="editorial-experience"><h3>Where I&apos;ve worked</h3>{work.map(job => <div className="editorial-job" key={job.name}><strong>{job.name}</strong><span>{job.position}</span></div>)}</div>
         </section>
       </main>
       <footer className="editorial-footer"><span>© {new Date().getFullYear()} {data.basics?.name || 'Jonathan Ng'}</span><div><a href={`mailto:${data.basics?.email || 'me@j6n.ca'}`}>Email ↗</a><a href="https://github.com/j6nca">GitHub ↗</a><a href="https://linkedin.com/in/j6n">LinkedIn ↗</a></div><a href="#top" onClick={e => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }) }}>Back to top ↑</a></footer>
