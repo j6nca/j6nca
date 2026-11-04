@@ -38,3 +38,10 @@ html[data-editorial-theme="dark"] .editorial-art-terminal{background:#293b30;col
 .editorial-cloud-tagline{font:italic clamp(24px,3.5vw,46px) Georgia,serif;letter-spacing:-.035em;color:var(--green);margin:-12px 0 20px}
 .editorial-visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 @media(max-width:700px){.editorial-cloud-tagline{margin:0 0 20px}.editorial-wordcloud{margin:35px 0}}
+
+/* Hybrid word cloud: high-contrast anchor words and quieter supporting details. */
+.editorial-cloud-word{fill:var(--ink);transition:fill .2s ease,opacity .2s ease}
+.editorial-cloud-weight-3{fill:var(--green)}
+.editorial-cloud-weight-1{opacity:.72}
+.editorial-cloud-word:hover{fill:var(--green);opacity:1}
+@media(prefers-reduced-motion:reduce){.editorial-cloud-word{transition:none}}
