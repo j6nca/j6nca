@@ -99,3 +99,12 @@ html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;ov
 .editorial-self-intro p{max-width:680px;font-size:clamp(19px,2.3vw,27px);line-height:1.5;color:var(--sub);margin:0}
 .editorial-self-intro .editorial-text-link{margin-top:12px}
 @media(max-width:700px){.editorial-cloud-intro{width:94vw}.editorial-self-intro{min-height:70dvh}}
+
+/* Scroll-driven transition: cloud grows toward the viewer, then clears for the intro. */
+.editorial-hero{overflow:clip}
+.editorial-cloud-intro{transform-origin:center center;will-change:transform,opacity}
+.editorial-self-intro{will-change:transform,opacity}
+@media(prefers-reduced-motion:reduce){
+  .editorial-cloud-intro{transform:none!important;opacity:1!important;will-change:auto}
+  .editorial-self-intro{transform:none!important;opacity:1!important;will-change:auto}
+}
