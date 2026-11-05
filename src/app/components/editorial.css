@@ -108,3 +108,14 @@ html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;ov
   .editorial-cloud-intro{transform:none!important;opacity:1!important;will-change:auto}
   .editorial-self-intro{transform:none!important;opacity:1!important;will-change:auto}
 }
+
+/* Compact navigation: retain the existing scroll reveal, reduce visual weight. */
+.editorial-header{padding:10px clamp(18px,3vw,42px);gap:18px;min-height:52px}
+.editorial-logo{font-size:21px;letter-spacing:-1.5px;line-height:1}
+.editorial-header nav{gap:clamp(14px,2vw,26px);font-size:12px}
+.editorial-theme{font-size:15px}
+@media(max-width:700px){
+  .editorial-header{padding:10px 16px;gap:12px;min-height:48px;flex-wrap:nowrap}
+  .editorial-header nav{gap:12px;font-size:11px}
+  .editorial-logo{font-size:19px}
+}
