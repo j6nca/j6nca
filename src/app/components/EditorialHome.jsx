@@ -67,6 +67,13 @@ export default function EditorialHome({ data }) {
 
       <main id="top">
         <section className="editorial-hero editorial-panel" aria-label="Introduction word cloud">
+          <div className="editorial-cloud-grid" aria-hidden="true">
+            {[ [20, 28], [36, 42], [64, 28], [80, 57], [44, 71], [72, 71], [28, 57] ].map(([x, y], index) => (
+              <svg key={index} className="editorial-grid-star" style={{ left: `${x}%`, top: `${y}%`, animationDelay: `${index * -1.7}s` }} viewBox="0 0 24 24" fill="none">
+                <path d="M12 2 C13.3 8.7 15.3 10.7 22 12 C15.3 13.3 13.3 15.3 12 22 C10.7 15.3 8.7 13.3 2 12 C8.7 10.7 10.7 8.7 12 2Z" fill="currentColor" />
+              </svg>
+            ))}
+          </div>
           <div className="editorial-cloud-intro" style={{ opacity: 1 - scrollProgress, transform: `scale(${1 + scrollProgress * .8})` }}>
             <WordCloud />
           </div>
