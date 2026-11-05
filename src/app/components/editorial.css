@@ -108,3 +108,28 @@ html:has(.editorial-site),body:has(.editorial-site){height:auto;overflow:auto;ov
   .editorial-cloud-intro{transform:none!important;opacity:1!important;will-change:auto}
   .editorial-self-intro{transform:none!important;opacity:1!important;will-change:auto}
 }
+
+/* Faint drifting graph paper, feathered to an ellipse behind the wordmark. */
+.editorial-cloud-grid{
+  position:absolute;inset:7% 3% 12%;z-index:0;pointer-events:none;
+  color:var(--green);opacity:calc(.65 * (1 - var(--cloud-progress)));
+  -webkit-mask-image:radial-gradient(ellipse 48% 43% at 50% 50%,#000 15%,transparent 100%);
+  mask-image:radial-gradient(ellipse 48% 43% at 50% 50%,#000 15%,transparent 100%);
+}
+.editorial-cloud-grid::before{
+  content:"";position:absolute;inset:-32px;
+  background-image:linear-gradient(to right,var(--rule) 1px,transparent 1px),linear-gradient(to bottom,var(--rule) 1px,transparent 1px);
+  background-size:64px 64px;
+  opacity:.8;
+  animation:editorial-grid-drift 32s ease-in-out infinite alternate;
+}
+.editorial-grid-star{
+  position:absolute;width:13px;height:13px;transform:translate(-50%,-50%);
+  opacity:0;animation:editorial-star-twinkle 11.9s ease-in-out infinite;
+}
+.editorial-cloud-intro{position:relative;z-index:1}
+.editorial-stage-next{z-index:2}
+@keyframes editorial-grid-drift{from{transform:translate(-8px,-5px)}to{transform:translate(8px,5px)}}
+@keyframes editorial-star-twinkle{0%,15%,65%,100%{opacity:0;transform:translate(-50%,-50%) scale(.6)}30%,40%{opacity:.55;transform:translate(-50%,-50%) scale(1)}}
+@media(max-width:700px){.editorial-cloud-grid{inset:15% 0 20%}.editorial-cloud-grid::before{background-size:48px 48px}}
+@media(prefers-reduced-motion:reduce){.editorial-cloud-grid::before,.editorial-grid-star{animation:none!important}.editorial-grid-star{opacity:.2}}
