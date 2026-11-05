@@ -73,15 +73,15 @@ export default function EditorialHome({ data }) {
         </section>
 
         <section className="editorial-section editorial-panel editorial-self-intro" id="intro" aria-labelledby="intro-heading">
-          <h2 id="intro-heading">Hello, I'm Jonathan.</h2>
-          <p>I'm a site reliability engineer based in Toronto who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
+          <h2 id="intro-heading">Hello, I&apos;m Jonathan.</h2>
+          <p>I&apos;m a site reliability engineer based in Toronto who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
           <a href="#work" className="editorial-text-link">Explore selected work ↘</a>
         </section>
 
         <section className="editorial-section editorial-panel" id="work" aria-labelledby="work-heading">
           <div className="editorial-section-heading"><div><h2 id="work-heading">Things I&apos;ve built.</h2></div><a href="https://github.com/j6nca" target="_blank" rel="noreferrer">More on GitHub ↗</a></div>
           <div className="editorial-projects">
-            {featured.map((project, index) => (
+            {featured.map(project => (
               <a className="editorial-project" key={project.name} href={project.url} target="_blank" rel="noreferrer">
                 <div className={`editorial-art editorial-art-${project.art}`}><span className="editorial-art-grid" aria-hidden="true" /><span className="editorial-art-symbol" aria-hidden="true">{project.mark}</span></div>
                 <div className="editorial-project-info"><div><h3>{project.name}</h3><p>{project.description}</p></div><span className="editorial-project-arrow" aria-hidden="true">↗</span></div>
