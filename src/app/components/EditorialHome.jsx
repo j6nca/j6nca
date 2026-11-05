@@ -48,6 +48,7 @@ export default function EditorialHome({ data }) {
     setTheme(next)
   }
   const work = data.work?.slice(0, 3) || []
+  const introProgress = Math.min(1, Math.max(0, (scrollProgress - .3) / .7))
 
   return (
     <div className={`editorial-site ${scrollProgress > .85 ? "editorial-scrolled" : ""}`} style={{ "--cloud-progress": scrollProgress }}>
@@ -66,13 +67,13 @@ export default function EditorialHome({ data }) {
 
       <main id="top">
         <section className="editorial-hero editorial-panel" aria-label="Introduction word cloud">
-          <div className="editorial-cloud-intro" style={{ opacity: 1 - scrollProgress }}>
+          <div className="editorial-cloud-intro" style={{ opacity: 1 - scrollProgress, transform: `scale(${1 + scrollProgress * .8})` }}>
             <WordCloud />
           </div>
           <a href="#intro" className="editorial-scroll-note editorial-stage-next">SCROLL TO EXPLORE ↓</a>
         </section>
 
-        <section className="editorial-section editorial-panel editorial-self-intro" id="intro" aria-labelledby="intro-heading">
+        <section className="editorial-section editorial-panel editorial-self-intro" id="intro" aria-labelledby="intro-heading" style={{ opacity: introProgress, transform: `translateY(${(1 - introProgress) * 36}px)` }}>
           <h2 id="intro-heading">Hello, I&apos;m Jonathan.</h2>
           <p>I&apos;m a site reliability engineer based in Toronto who enjoys building reliable systems, useful tools, and the occasional unexpected thing.</p>
           <a href="#work" className="editorial-text-link">Explore selected work ↘</a>
